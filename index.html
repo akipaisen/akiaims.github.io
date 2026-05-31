@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>aki</title>
+<link rel="icon" id="favicon" type="image/png" href="">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #ffffff;
+    color: #2c3b2d;
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 16px;
+    transition: background 0.8s ease;
+  }
+
+  .card {
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 340px;
+    padding: 36px 32px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: background 0.8s ease, border-color 0.8s ease;
+  }
+
+  .avatar-wrap {
+    position: relative;
+    width: 96px;
+    height: 96px;
+    flex-shrink: 0;
+    margin-bottom: 14px;
+    cursor: pointer;
+  }
+
+  .avatar {
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    background: #e0e0e0;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+  }
+
+  .status-dot {
+    position: absolute;
+    bottom: 3px;
+    right: 3px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid #ffffff;
+    background: #aaaaaa;
+  }
+
+  .status-dot.online  { background: #3ba55c; }
+  .status-dot.idle    { background: #faa61a; }
+  .status-dot.dnd     { background: #ed4245; }
+  .status-dot.offline { background: #aaaaaa; }
+
+  .name {
+    font-size: 17px;
+    color: #333333;
+    font-weight: 500;
+    margin-bottom: 4px;
+  }
+
+  .tagline {
+    font-size: 12px;
+    color: #aaaaaa;
+    font-style: italic;
+    margin-bottom: 0;
+  }
+
+  .divider {
+    width: 100%;
+    border: none;
+    border-top: 1px solid #e0e0e0;
+    margin: 20px 0 16px;
+  }
+
+  .section-label {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: #aaaaaa;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    align-self: flex-start;
+  }
+
+  .about-items {
+    width: 100%;
+    margin-bottom: 4px;
+  }
+
+  .about-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+    color: #666666;
+    font-size: 13px;
+  }
+
+  .about-age {
+    color: #666666;
+    font-size: 13px;
+    margin-bottom: 6px;
+    cursor: default;
+  }
+
+  .about-age .decimal { display: none; }
+  .about-age:hover .decimal { display: inline; }
+  .about-age:hover .whole { display: none; }
+
+  .about-text {
+    color: #aaaaaa;
+    font-size: 13px;
+    line-height: 1.7;
+  }
+
+  .links {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .link-item {
+    display: block;
+    color: #666666;
+    text-decoration: none;
+    font-size: 14px;
+    padding: 5px 0;
+    transition: color 0.15s;
+  }
+
+  .link-item:hover { color: #333333; }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <a href="https://en.pronouns.page/@sleepyhazel" target="_blank" style="text-decoration:none">
+  <div class="avatar-wrap">
+    <div class="avatar" id="avatar">
+      <svg width="96" height="96" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="40" cy="40" r="40" fill="#e0e0e0"/>
+        <circle cx="40" cy="32" r="14" fill="#c0c0c0"/>
+        <ellipse cx="40" cy="72" rx="22" ry="16" fill="#c0c0c0"/>
+      </svg>
+    </div>
+    <div class="status-dot offline" id="status-dot"></div>
+  </div>
+  </a>
+
+  <div class="name">aki</div>
+  <div class="tagline">c'est la vie</div>
+
+  <hr class="divider">
+
+  <div class="section-label">about</div>
+  <div class="about-items">
+    <div class="about-item" id="about-bpm" style="display:none">
+      <span>🩷</span><span id="bpm-text"></span>
+    </div>
+    <div class="about-item" id="about-time">
+      <span>🕐</span><span id="time-text"></span>
+    </div>
+    <div class="about-item" id="about-vrchat" style="display:none">
+      <span>🥽</span><span>VRChat</span>
+    </div>
+    <div class="about-item" id="about-spotify" style="display:none">
+      <span>🎵</span><span id="spotify-text"></span>
+    </div>
+    <div class="about-age" id="exact-age"><span class="whole">22</span><span class="decimal"></span></div>
+    <div class="about-text">aimtraining, valorant, apex, bfv,<br>fortnite, vrchat, peripherals</div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="section-label">links</div>
+  <div class="links">
+    <a class="link-item" href="setup.html">setup &amp; peripherals</a>
+    <a class="link-item" href="https://x.com/akiaims" target="_blank">twitter</a>
+    <a class="link-item" href="https://www.youtube.com/@akiaims" target="_blank">youtube</a>
+    <a class="link-item" href="https://www.twitch.tv/akiaims" target="_blank">twitch</a>
+    <a class="link-item" href="https://steamcommunity.com/id/akiaims/" target="_blank">steam</a>
+    <a class="link-item" href="https://ko-fi.com/akiaims" target="_blank">ko-fi</a>
+    <a class="link-item" href="https://www.last.fm/user/ecchisin" target="_blank">last.fm</a>
+  </div>
+</div>
+
+<script>
+  const DISCORD_ID = '250645109438152704';
+
+  function updateTime() {
+    const now = new Date();
+    let h = now.getHours(), m = now.getMinutes();
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    h = h % 12 || 12;
+    document.getElementById('time-text').textContent =
+      `${h}:${String(m).padStart(2,'0')} ${ampm}`;
+  }
+
+  function show(id, visible) {
+    document.getElementById(id).style.display = visible ? 'flex' : 'none';
+  }
+
+  async function fetchLanyard() {
+    try {
+      const res = await fetch(`https://api.lanyard.rest/v1/users/${DISCORD_ID}`);
+      const json = await res.json();
+      if (!json.success) return;
+      const d = json.data;
+
+      if (d.discord_user.avatar) {
+        const ext = d.discord_user.avatar.startsWith('a_') ? 'gif' : 'png';
+        const url = `https://cdn.discordapp.com/avatars/${DISCORD_ID}/${d.discord_user.avatar}.${ext}?size=128`;
+        document.getElementById('avatar').innerHTML = `<img src="${url}" alt="aki's avatar">`;
+        document.getElementById('favicon').href = url;
+        extractAndApply(url);
+      }
+
+      document.getElementById('status-dot').className = 'status-dot ' + (d.discord_status || 'offline');
+
+      const customStatus = d.activities?.find(a => a.type === 4);
+      const bpmMatch = customStatus?.state?.match(/(\d+)\s*bpm/i) ||
+                       customStatus?.name?.match(/(\d+)\s*bpm/i);
+      if (bpmMatch) {
+        document.getElementById('bpm-text').textContent = bpmMatch[1] + ' BPM';
+        show('about-bpm', true);
+      } else {
+        const pulsoid = d.activities?.find(a => a.name?.toLowerCase().includes('pulsoid') || a.details?.match(/\d+\s*bpm/i));
+        if (pulsoid) {
+          const m2 = (pulsoid.details || pulsoid.state || '').match(/(\d+)/);
+          if (m2) { document.getElementById('bpm-text').textContent = m2[1] + ' BPM'; show('about-bpm', true); }
+        } else { show('about-bpm', false); }
+      }
+
+      const inVRC = d.activities?.some(a => a.name?.toLowerCase().includes('vrchat'));
+      show('about-vrchat', !!inVRC);
+
+      if (d.listening_to_spotify && d.spotify) {
+        document.getElementById('spotify-text').textContent = d.spotify.song + ' — ' + d.spotify.artist;
+        show('about-spotify', true);
+      } else {
+        show('about-spotify', false);
+      }
+    } catch(e) {}
+  }
+
+  // --- colour extraction ---
+  function rgbToHsl(r, g, b) {
+    r /= 255; g /= 255; b /= 255;
+    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+    let h, s, l = (max + min) / 2;
+    if (max === min) { h = s = 0; }
+    else {
+      const d = max - min;
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      switch(max) {
+        case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+        case g: h = ((b - r) / d + 2) / 6; break;
+        case b: h = ((r - g) / d + 4) / 6; break;
+      }
+    }
+    return [Math.round(h * 360), Math.round(s * 100), Math.round(l * 100)];
+  }
+
+  function hslToHex(h, s, l) {
+    s /= 100; l /= 100;
+    const k = n => (n + h / 30) % 12;
+    const a = s * Math.min(l, 1 - l);
+    const f = n => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+    return '#' + [f(0), f(8), f(4)].map(x => Math.round(x * 255).toString(16).padStart(2, '0')).join('');
+  }
+
+  function getDominantColour(img) {
+    const canvas = document.createElement('canvas');
+    canvas.width = canvas.height = 32;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, 32, 32);
+    const data = ctx.getImageData(0, 0, 32, 32).data;
+    let r = 0, g = 0, b = 0, count = 0;
+    for (let i = 0; i < data.length; i += 16) {
+      // skip very dark and very light pixels
+      const avg = (data[i] + data[i+1] + data[i+2]) / 3;
+      if (avg < 30 || avg > 230) continue;
+      r += data[i]; g += data[i+1]; b += data[i+2]; count++;
+    }
+    if (!count) return null;
+    return [Math.round(r/count), Math.round(g/count), Math.round(b/count)];
+  }
+
+  function applyTheme(r, g, b) {
+    const [h, s] = rgbToHsl(r, g, b);
+    // keep light theme — use high lightness variants
+    const bg     = hslToHex(h, Math.min(s, 40), 88);   // pale bg
+    const card   = hslToHex(h, Math.min(s, 35), 93);   // slightly lighter card
+    const border = hslToHex(h, Math.min(s, 40), 75);   // muted border
+    const muted  = hslToHex(h, Math.min(s, 30), 62);   // labels, tagline
+    const text   = hslToHex(h, Math.min(s, 50), 22);   // dark text
+    const link   = hslToHex(h, Math.min(s, 45), 32);   // links
+
+    document.body.style.background = bg;
+    document.querySelector('.card').style.background = card;
+    document.querySelector('.card').style.borderColor = border;
+    document.querySelector('.status-dot').style.borderColor = card;
+
+    // apply CSS vars for text
+    document.documentElement.style.setProperty('--col-muted', muted);
+    document.documentElement.style.setProperty('--col-text', text);
+    document.documentElement.style.setProperty('--col-link', link);
+    document.documentElement.style.setProperty('--col-border', border);
+
+    // update dividers and labels
+    document.querySelectorAll('.divider').forEach(el => el.style.borderColor = border);
+    document.querySelectorAll('.section-label').forEach(el => el.style.color = muted);
+    document.querySelectorAll('.tagline').forEach(el => el.style.color = muted);
+    document.querySelectorAll('.about-text').forEach(el => el.style.color = muted);
+    document.querySelectorAll('.name').forEach(el => el.style.color = text);
+    document.querySelectorAll('.about-item').forEach(el => el.style.color = link);
+    document.querySelectorAll('.about-age').forEach(el => el.style.color = link);
+    document.querySelectorAll('.link-item').forEach(el => el.style.color = link);
+  }
+
+  async function extractAndApply(avatarUrl) {
+    try {
+      // route through CORS proxy so canvas can read pixels
+      const proxyUrl = `https://images.weserv.nl/?url=${encodeURIComponent(avatarUrl)}&w=64&h=64&fit=cover&output=png&t=${Date.now()}`;
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => {
+        const colour = getDominantColour(img);
+        if (colour) applyTheme(...colour);
+      };
+      img.src = proxyUrl;
+    } catch(e) {}
+  }
+
+  // --- lanyard ---
+  const BIRTHDATE = new Date('2003-04-29T00:00:00+08:00');
+  function updateAge() {
+    const now = new Date();
+    const years = (now - BIRTHDATE) / (365.25 * 24 * 60 * 60 * 1000);
+    document.querySelector('#exact-age .whole').textContent = Math.floor(years);
+    document.querySelector('#exact-age .decimal').textContent = years.toFixed(8);
+  }
+  updateAge();
+  setInterval(updateAge, 100);
+  updateTime();
+  setInterval(updateTime, 10000);
+  fetchLanyard();
+  setInterval(fetchLanyard, 30000);
+</script>
+
+</body>
+</html>
