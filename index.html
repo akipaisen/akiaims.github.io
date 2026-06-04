@@ -213,8 +213,6 @@
 </div>
 
 <script>
-  // capture hash immediately before anything clears it
-  const _initHash = window.location.hash;
   const DISCORD_ID = '250645109438152704';
 
   function updateTime() {
@@ -247,6 +245,20 @@
 
       document.getElementById('status-dot').className = 'status-dot ' + (d.discord_status || 'offline');
 
+      const customStatus = d.activities?.find(a => a.type === 4);
+      const bpmMatch = customStatus?.state?.match(/(\d+)\s*bpm/i) ||
+                       customStatus?.name?.match(/(\d+)\s*bpm/i);
+      if (bpmMatch) {
+        document.getElementById('bpm-text').textContent = bpmMatch[1] + ' BPM';
+        show('about-bpm', true);
+      } else {
+        const pulsoid = d.activities?.find(a => a.name?.toLowerCase().includes('pulsoid') || a.details?.match(/\d+\s*bpm/i));
+        if (pulsoid) {
+          const m2 = (pulsoid.details || pulsoid.state || '').match(/(\d+)/);
+          if (m2) { document.getElementById('bpm-text').textContent = m2[1] + ' BPM'; show('about-bpm', true); }
+        } else { show('about-bpm', false); }
+      }
+
       const inVRC = d.activities?.some(a => a.name?.toLowerCase().includes('vrchat'));
       show('about-vrchat', !!inVRC);
 
@@ -254,49 +266,7 @@
   }
 
   // --- pulsoid ---
-  const PULSOID_CLIENT_ID = '153f97d4-f0c8-49e7-bd56-e1d1332367ec';
-  const PULSOID_REDIRECT = 'https://akiaims.xyz';
-  let pulsoidWs = null;
-
-  function pulsoidConnect(token) {
-    if (pulsoidWs) pulsoidWs.close();
-    pulsoidWs = new WebSocket(
-      `wss://dev.pulsoid.net/api/v1/data/real_time?access_token=${token}&response_mode=text_plain_only_heart_rate`
-    );
-    pulsoidWs.onmessage = e => {
-      const bpm = parseInt(e.data);
-      if (!isNaN(bpm) && bpm > 0) {
-        document.getElementById('bpm-text').textContent = bpm + ' BPM';
-        show('about-bpm', true);
-      }
-    };
-    pulsoidWs.onerror = () => show('about-bpm', false);
-    pulsoidWs.onclose = () => {
-      setTimeout(() => {
-        const t = localStorage.getItem('pulsoid_token');
-        if (t) pulsoidConnect(t);
-      }, 5000);
-    };
-  }
-
-  function initPulsoid() {
-    const hash = _initHash || window.location.hash;
-    if (hash.includes('access_token=')) {
-      const params = new URLSearchParams(hash.replace('#', ''));
-      const token = params.get('access_token');
-      if (token) {
-        localStorage.setItem('pulsoid_token', token);
-        history.replaceState(null, '', window.location.pathname);
-        pulsoidConnect(token);
-        return;
-      }
-    }
-    const stored = localStorage.getItem('pulsoid_token');
-    if (stored) { pulsoidConnect(stored); return; }
-    const authUrl = `https://pulsoid.net/oauth2/authorize?response_type=token&client_id=${PULSOID_CLIENT_ID}&redirect_uri=${encodeURIComponent(PULSOID_REDIRECT)}&scope=data:heart_rate:read`;
-    document.getElementById('bpm-text').innerHTML = `<a href="${authUrl}" style="color:inherit;text-decoration:underline;font-size:11px;">connect pulsoid</a>`;
-    show('about-bpm', true);
-  }
+  // use discord rich presence via lanyard for BPM
 
   // --- colour extraction ---
   function rgbToHsl(r, g, b) {
@@ -419,7 +389,6 @@
 
   updateTime();
   setInterval(updateTime, 10000);
-  initPulsoid();
   fetchLanyard();
   setInterval(fetchLanyard, 30000);
 </script>
