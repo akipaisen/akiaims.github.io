@@ -245,29 +245,67 @@
 
       document.getElementById('status-dot').className = 'status-dot ' + (d.discord_status || 'offline');
 
-      const customStatus = d.activities?.find(a => a.type === 4);
-      const bpmMatch = customStatus?.state?.match(/(\d+)\s*bpm/i) ||
-                       customStatus?.name?.match(/(\d+)\s*bpm/i);
-      if (bpmMatch) {
-        document.getElementById('bpm-text').textContent = bpmMatch[1] + ' BPM';
+      // --- pulsoid heart rate ---
+  const PULSOID_CLIENT_ID = '153f97d4-f0c8-49e7-bd56-e1d1332367ec';
+  const PULSOID_REDIRECT   = 'https://akiaims.xyz';
+  let pulsoidWs = null;
+
+  function pulsoidConnect(token) {
+    if (pulsoidWs) pulsoidWs.close();
+    pulsoidWs = new WebSocket(
+      `wss://dev.pulsoid.net/api/v1/data/real_time?access_token=${token}&response_mode=text_plain_only_heart_rate`
+    );
+    pulsoidWs.onmessage = e => {
+      const bpm = parseInt(e.data);
+      if (!isNaN(bpm) && bpm > 0) {
+        document.getElementById('bpm-text').textContent = bpm + ' BPM';
         show('about-bpm', true);
-      } else {
-        const pulsoid = d.activities?.find(a => a.name?.toLowerCase().includes('pulsoid') || a.details?.match(/\d+\s*bpm/i));
-        if (pulsoid) {
-          const m2 = (pulsoid.details || pulsoid.state || '').match(/(\d+)/);
-          if (m2) { document.getElementById('bpm-text').textContent = m2[1] + ' BPM'; show('about-bpm', true); }
-        } else { show('about-bpm', false); }
       }
+    };
+    pulsoidWs.onerror = () => show('about-bpm', false);
+    pulsoidWs.onclose = () => {
+      // retry after 5s
+      setTimeout(() => {
+        const t = localStorage.getItem('pulsoid_token');
+        if (t) pulsoidConnect(t);
+      }, 5000);
+    };
+  }
+
+  function initPulsoid() {
+    // check if token is in URL hash (redirect from pulsoid)
+    const hash = window.location.hash;
+    if (hash.includes('access_token=')) {
+      const params = new URLSearchParams(hash.replace('#', ''));
+      const token = params.get('access_token');
+      if (token) {
+        localStorage.setItem('pulsoid_token', token);
+        // clean URL
+        history.replaceState(null, '', window.location.pathname);
+        pulsoidConnect(token);
+        return;
+      }
+    }
+    // check stored token
+    const stored = localStorage.getItem('pulsoid_token');
+    if (stored) {
+      pulsoidConnect(stored);
+      return;
+    }
+    // no token — show auth link in bpm slot
+    const authUrl = `https://pulsoid.net/oauth2/authorize?response_type=token&client_id=${PULSOID_CLIENT_ID}&redirect_uri=${encodeURIComponent(PULSOID_REDIRECT)}&scope=data:heart_rate:read`;
+    document.getElementById('bpm-text').innerHTML = `<a href="${authUrl}" style="color:inherit;text-decoration:underline;font-size:11px;">connect pulsoid</a>`;
+    show('about-bpm', true);
+  }
+
+  initPulsoid();
 
       const inVRC = d.activities?.some(a => a.name?.toLowerCase().includes('vrchat'));
       show('about-vrchat', !!inVRC);
 
-      if (d.listening_to_spotify && d.spotify) {
-        document.getElementById('spotify-text').textContent = d.spotify.song + ' — ' + d.spotify.artist;
-        show('about-spotify', true);
-      } else {
-        show('about-spotify', false);
-      }
+      show('about-spotify', false);
+
+      // fetch last.fm now playing separately
     } catch(e) {}
   }
 
@@ -370,8 +408,29 @@
   }
   updateAge();
   setInterval(updateAge, 100);
+  async function fetchLastFm() {
+    try {
+      const res = await fetch('https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=ecchisin&api_key=3b3791b49faa2b1a1e1ae7db3e3e9be8&format=json&limit=1');
+      const json = await res.json();
+      const track = json.recenttracks?.track?.[0];
+      if (track && track['@attr']?.nowplaying === 'true') {
+        const text = `${track.name} — ${track.artist['#text']}`;
+        document.getElementById('spotify-text').textContent = text;
+        show('about-spotify', true);
+      } else {
+        show('about-spotify', false);
+      }
+    } catch(e) {
+      show('about-spotify', false);
+    }
+  }
+
+  fetchLastFm();
+  setInterval(fetchLastFm, 30000);
+
   updateTime();
   setInterval(updateTime, 10000);
+  initPulsoid();
   fetchLanyard();
   setInterval(fetchLanyard, 30000);
 </script>
