@@ -188,9 +188,6 @@
     <div class="about-item" id="about-time">
       <span>🕐</span><span id="time-text"></span>
     </div>
-    <div class="about-item" id="about-vrchat" style="display:none">
-      <span>🥽</span><span>VRChat</span>
-    </div>
     <div class="about-item" id="about-game" style="display:none">
       <span id="game-emoji">🎮</span><span id="game-text"></span>
     </div>
@@ -263,19 +260,21 @@
         } else { show('about-bpm', false); }
       }
 
-      const inVRC = d.activities?.some(a => a.name?.toLowerCase().includes('vrchat'));
-      show('about-vrchat', !!inVRC);
-
-      // current game — Discord "playing" activity (type 0).
-      // skip VRChat (own line above) and blocked custom presences.
-      const GAME_BLOCKLIST = ['vrchat', 'enjoys it'];
-      const game = d.activities?.find(a =>
+      // one line for whatever "Playing" activity (type 0) is live.
+      // emoji is picked from the name; blocked custom presences are ignored.
+      // OyasumiVR wins if it's running (means asleep in VR alongside VRChat).
+      const GAME_BLOCKLIST = ['enjoys it'];
+      const playing = (d.activities || []).filter(a =>
         a.type === 0 &&
         !GAME_BLOCKLIST.some(b => a.name?.toLowerCase().includes(b))
       );
+      const game = playing.find(a => a.name?.toLowerCase().includes('oyasumi')) || playing[0];
       if (game) {
-        const isSleep = game.name?.toLowerCase().includes('oyasumi');
-        document.getElementById('game-emoji').textContent = isSleep ? '💤' : '🎮';
+        const n = game.name.toLowerCase();
+        const emoji = n.includes('oyasumi') ? '💤'
+                    : n.includes('vrchat')  ? '🥽'
+                    : '🎮';
+        document.getElementById('game-emoji').textContent = emoji;
         document.getElementById('game-text').textContent = game.name;
         show('about-game', true);
       } else {
