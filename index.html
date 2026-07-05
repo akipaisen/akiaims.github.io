@@ -209,6 +209,7 @@
     <a class="link-item" href="https://steamcommunity.com/id/akiaims/" target="_blank">steam</a>
     <a class="link-item" href="https://ko-fi.com/akiaims" target="_blank">ko-fi</a>
     <a class="link-item" href="https://www.last.fm/user/ecchisin" target="_blank">last.fm</a>
+    <a class="link-item" href="https://pyvno.xyz/aki" target="_blank">kova</a>
   </div>
 </div>
 
@@ -262,11 +263,14 @@
       const inVRC = d.activities?.some(a => a.name?.toLowerCase().includes('vrchat'));
       show('about-vrchat', !!inVRC);
 
+      if (d.listening_to_spotify && d.spotify) {
+        document.getElementById('spotify-text').textContent = d.spotify.song + ' — ' + d.spotify.artist;
+        show('about-spotify', true);
+      } else {
+        show('about-spotify', false);
+      }
     } catch(e) {}
   }
-
-  // --- pulsoid ---
-  // use discord rich presence via lanyard for BPM
 
   // --- colour extraction ---
   function rgbToHsl(r, g, b) {
@@ -367,26 +371,6 @@
   }
   updateAge();
   setInterval(updateAge, 100);
-  async function fetchLastFm() {
-    try {
-      const res = await fetch('https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=ecchisin&api_key=fdd2525bfffb75e716fb8d2f7fdb5b41&format=json&limit=1');
-      const json = await res.json();
-      const track = json.recenttracks?.track?.[0];
-      if (track && track['@attr']?.nowplaying === 'true') {
-        const text = `${track.name} — ${track.artist['#text']}`;
-        document.getElementById('spotify-text').textContent = text;
-        show('about-spotify', true);
-      } else {
-        show('about-spotify', false);
-      }
-    } catch(e) {
-      show('about-spotify', false);
-    }
-  }
-
-  fetchLastFm();
-  setInterval(fetchLastFm, 30000);
-
   updateTime();
   setInterval(updateTime, 10000);
   fetchLanyard();

@@ -144,6 +144,79 @@
     margin-left: 4px;
   }
 
+  .slideshow-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin: 0 auto 14px;
+    padding: 0 8px;
+  }
+
+  .slideshow {
+    position: relative;
+    width: 620px;
+    max-width: 100%;
+    flex: 0 1 620px;
+    aspect-ratio: 3 / 2;
+    border-radius: 4px;
+    overflow: hidden;
+    background: #f0f0f0;
+  }
+
+  .slideshow img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity 1s ease;
+  }
+
+  .slideshow img.active { opacity: 1; }
+
+  /* show the bottom of the blue-pad shot instead of the middle */
+  .slideshow img[src="setup-6.jpg"] { object-position: center bottom; }
+
+  .dots {
+    display: flex;
+    justify-content: center;
+    gap: 7px;
+    margin: 0 auto 40px;
+  }
+
+  .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #ccc;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .dot.active { background: #888; }
+
+  .nav {
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: #ececec;
+    color: #555;
+    font-size: 26px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s, color 0.2s;
+  }
+
+  .nav:hover { background: #dcdcdc; color: #222; }
+
   @media (max-width: 500px) {
     body { padding: 24px 16px 60px; }
     .container { max-width: 100%; }
@@ -167,7 +240,12 @@
   <div class="subtitle">the neverending pile of useless stuff</div>
 </div>
 
-<img src="setup-image.png" alt="aki's setup" style="width:460px; max-width:90%; display:block; margin: 0 auto 40px; border-radius:4px;">
+<div class="slideshow-wrap">
+  <button class="nav prev" id="prev" aria-label="previous photo">‹</button>
+  <div class="slideshow" id="slideshow"></div>
+  <button class="nav next" id="next" aria-label="next photo">›</button>
+</div>
+<div class="dots" id="dots"></div>
 
 <div class="container">
 
@@ -194,6 +272,7 @@
     <table>
       <thead><tr><th>model</th><th style="text-align:right">price</th></tr></thead>
       <tbody>
+        <tr><td><a href="https://www.respawngt.com/products/xm2-8k-gaming-mouse" target="_blank">Endgame Gear XM2 8K</a></td><td style="text-align:right">RM379.00</td></tr>
         <tr><td><a href="https://shopee.com.my/Endgame-Gear-OP18k-V2-Wired-Gaming-Mouse-i.557758082.28788303788" target="_blank">Endgame Gear OP1 8K v2</a></td><td style="text-align:right">RM428.00</td></tr>
         <tr><td><a href="https://www.respawngt.com/products/pulsar-pacific-gold-prx-edition-x2-crazy-light-gaming-mouse-mini" target="_blank">Pulsar Pacific Gold PRX Edition X2mini CL</a></td><td style="text-align:right">RM679.00</td></tr>
         <tr><td><a href="https://shopee.com.my/wlmouse-Beast-X-lightweight-magnesium-alloy-mouse-Flower-Beast-series-3395-sensor-i.487885173.24253203537" target="_blank">WLMouse Beast X</a></td><td style="text-align:right">RM677.40</td></tr>
@@ -210,6 +289,7 @@
     <table>
       <thead><tr><th>model</th><th style="text-align:right">price</th></tr></thead>
       <tbody>
+        <tr><td><a href="https://shopee.com.my/TALONGAMES-Mouse-Skates-48-Dots-Universal-for-Cloth-Mousepads-High-Durability-Low-Noise-KUMO-i.162165097.40925635188" target="_blank">TALONGAMES KUMO</a></td><td style="text-align:right">RM37.77</td></tr>
         <tr><td><a href="https://www.respawngt.com/products/xraypad-obsidian-air-diy-mouse-skates-universal-dots-purple-dots-" target="_blank">Xraypad Obsidian Air</a></td><td style="text-align:right">RM50.00</td></tr>
         <tr><td><a href="https://www.respawngt.com/products/west-lab-dots-universal-mouse-skates" target="_blank">West Lab Black Dots</a></td><td style="text-align:right">RM15.00</td></tr>
       </tbody>
@@ -222,6 +302,7 @@
     <table>
       <thead><tr><th>model</th><th>size</th><th style="text-align:right">price</th></tr></thead>
       <tbody>
+        <tr><td><a href="https://shopee.com.my/Pulsar-eS-PD170-Gaming-Mousepad-i.557758082.53756644069" target="_blank">Pulsar eS PD170 XLSQ</a></td><td>500×500</td><td style="text-align:right">RM308.70</td></tr>
         <tr><td><a href="https://www.respawngt.com/products/kanami-hoshino-limited-edition-glass-mousepad-pre-order-" target="_blank">Kanami Hoshino Limited Edition Glass</a></td><td>490×420</td><td style="text-align:right">RM529.00</td></tr>
         <tr><td><a href="https://shopee.com.my/Artisan-NINJA-FX-Zero-Gaming-Mousepad-Original-Official-Malaysia-Authorized-Retailer-i.557758082.42868691752" target="_blank">Artisan NINJA FX Zero Mid XL</a></td><td>490×420</td><td style="text-align:right">RM281.33</td></tr>
         <tr><td><a href="https://shopee.com.my/Wallhacs-SP004-Frenzy-SORA-Coating-Gaming-Tempered-Glass-Mouse-Pad-Same-Style-Copy-Version-i.1080408605.27304038883" target="_blank">SP-004 Frenzy Sora Replica</a> <span class="tag">fake</span></td><td>500×500</td><td style="text-align:right">RM225.22</td></tr>
@@ -313,7 +394,7 @@
       <tbody>
         <tr><td class="category-cell">case</td><td><a href="https://shopee.com.my/Lethal-Gaming-Gear-Saturn-PRO-i.557758082.23778283525" target="_blank">TECWARE TIMBER M (Black)</a></td><td style="text-align:right">RM168.30</td></tr>
         <tr><td class="category-cell">motherboard</td><td><a href="https://shopee.com.my/MSI-B850M-Gaming-Plus-WIFI-mATX-Motherboard-AMD-AM5-i.1562367463.41010422432" target="_blank">MSI B850M Gaming Plus WIFI</a></td><td style="text-align:right">RM705.00</td></tr>
-        <tr><td class="category-cell">RAM</td><td><a href="https://shopee.com.my/G.SKILL-Ripjaws-DDR5-SO-DIMM-16GB-(1x16GB)-5600MHz-DDR5-CL46-Single-Memory-i.576537911.57300722189" target="_blank">G.SKILL Ripjaws DDR5 1×16GB</a></td><td style="text-align:right">RM1,266.00 <span class="tag">don't.</span></td></tr>
+        <tr><td class="category-cell">RAM</td><td><a href="https://shopee.com.my/G.SKILL-Aegis-5-DDR5-16GB-32GB-64GB-5600MHz-CL36-Memory-Kit-With-Intel-XMP-AMD-EXPO-PERFORMANCE-RAM-DESKTOP-i.576537911.46450747283" target="_blank">G.SKILL Aegis 5 DDR5 2×16GB</a></td><td style="text-align:right">RM1,975.58</td></tr>
         <tr><td class="category-cell">CPU</td><td><a href="https://shopee.com.my/AMD-Ryzen-7-7800X3D-9800X3D-Processor-8-Cores-16-Threads-AM5-(Tray-Unit)-i.1562367463.24896478727" target="_blank">Ryzen 7 7800X3D</a></td><td style="text-align:right">RM1,695.00</td></tr>
         <tr><td class="category-cell">GPU</td><td><a href="https://shopee.com.my/COLORFUL-GeForce-RTX-5070-NB-EX-V2-12GB-V-GDDR7-GRAPHICS-CARD-i.20108462.28179353205" target="_blank">RTX 5070</a></td><td style="text-align:right">RM3,399.00</td></tr>
         <tr><td class="category-cell">storage</td><td><a href="https://shopee.com.my/TeamGroup-T-FORCE-Z44A5-512GB-1TB-M.2-2280-NVMe-GEN4x4-SSD-i.576537911.44800937576" target="_blank">T-FORCE Z44A5 512GB</a></td><td style="text-align:right">RM499.00</td></tr>
@@ -329,21 +410,84 @@
     <table>
       <thead><tr><th>category</th><th style="text-align:right">total</th></tr></thead>
       <tbody>
-        <tr><td>mice</td><td style="text-align:right">RM2,040.90</td></tr>
-        <tr><td>skates</td><td style="text-align:right">RM65.00</td></tr>
-        <tr><td>mousepads</td><td style="text-align:right">RM1,341.77</td></tr>
+        <tr><td>mice</td><td style="text-align:right">RM2,419.90</td></tr>
+        <tr><td>skates</td><td style="text-align:right">RM102.77</td></tr>
+        <tr><td>mousepads</td><td style="text-align:right">RM1,650.47</td></tr>
         <tr><td>monitors</td><td style="text-align:right">RM1,163.36</td></tr>
         <tr><td>audio</td><td style="text-align:right">RM6,080.83</td></tr>
         <tr><td>keyboards</td><td style="text-align:right">RM1,196.39</td></tr>
         <tr><td>other input devices</td><td style="text-align:right">RM4,473.82</td></tr>
-        <tr><td>PC</td><td style="text-align:right">RM8,535.30</td></tr>
-        <tr class="total-row"><td><strong>total</strong></td><td style="text-align:right"><strong>RM24,897.37</strong> <span class="tag">≈ USD 6,263.48</span></td></tr>
+        <tr><td>PC</td><td style="text-align:right">RM9,244.88</td></tr>
+        <tr class="total-row"><td><strong>total</strong></td><td style="text-align:right"><strong>RM26,332.42</strong> <span class="tag">≈ USD 6,624.50</span></td></tr>
       </tbody>
     </table>
   </div>
 
 </div>
 <script>
+  // === setup photos — add/remove filenames here, first one shows first ===
+  const PHOTOS = [
+    'setup-desk.jpg',  // full desk (landscape)
+    'setup-3.jpg',     // pink pulsar closeup
+    'setup-5.jpg',     // pink pulsar + screen
+    'setup-6.jpg',     // black mouse, navy pad
+    'setup-7.jpg',     // peppermint oil
+    'setup-8.jpg',     // cat
+  ];
+
+  (function initSlideshow() {
+    const stage = document.getElementById('slideshow');
+    const dots  = document.getElementById('dots');
+    if (!stage) return;
+
+    // shuffle a copy so the order is random on every page load
+    const order = PHOTOS.slice();
+    for (let i = order.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [order[i], order[j]] = [order[j], order[i]];
+    }
+
+    order.forEach((src, i) => {
+      const img = document.createElement('img');
+      img.src = src;
+      img.alt = "aki's setup";
+      if (i === 0) img.classList.add('active');
+      stage.appendChild(img);
+
+      const dot = document.createElement('div');
+      dot.className = 'dot' + (i === 0 ? ' active' : '');
+      dot.addEventListener('click', () => go(i));
+      dots.appendChild(dot);
+    });
+
+    // hide dots + arrows + skip auto-rotate when there's only one photo
+    if (order.length <= 1) {
+      dots.style.display = 'none';
+      document.querySelectorAll('.nav').forEach(b => b.style.display = 'none');
+      return;
+    }
+
+    let idx = 0, timer;
+    const imgs = stage.querySelectorAll('img');
+    const dotEls = dots.querySelectorAll('.dot');
+
+    function go(n) {
+      idx = (n + order.length) % order.length;
+      imgs.forEach((im, i) => im.classList.toggle('active', i === idx));
+      dotEls.forEach((d, i) => d.classList.toggle('active', i === idx));
+      restart();
+    }
+    function restart() {
+      clearInterval(timer);
+      timer = setInterval(() => go(idx + 1), 4000);
+    }
+
+    document.getElementById('prev').addEventListener('click', () => go(idx - 1));
+    document.getElementById('next').addEventListener('click', () => go(idx + 1));
+
+    restart();
+  })();
+
   const DISCORD_ID = '250645109438152704';
 
   function rgbToHsl(r,g,b){
