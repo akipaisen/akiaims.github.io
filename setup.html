@@ -144,6 +144,45 @@
     margin-left: 4px;
   }
 
+  .current-shot {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 5 / 2;
+    border-radius: 4px;
+    overflow: hidden;
+    background: #f2f2f2;
+    margin-bottom: 8px;
+  }
+
+  .current-shot img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .current-shot.empty { border: 1px dashed #ccc; background: #fafafa; }
+
+  .current-shot.empty::after {
+    content: 'add ' attr(data-file);
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #bbb;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+  }
+
+  .current-caption {
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 16px;
+  }
+
+  .current-caption strong { color: #555; font-weight: 500; }
+
   .slideshow-wrap {
     display: flex;
     align-items: center;
@@ -269,10 +308,14 @@
   <!-- MICE -->
   <div class="section" id="mice">
     <div class="section-label">mice</div>
+    <div class="current-shot" data-file="current-mouse.jpg"><img src="current-mouse.jpg" alt="current mouse" onerror="this.style.display='none';this.parentElement.classList.add('empty');"></div>
+    <div class="current-caption">current: <strong>—</strong></div>
     <table>
       <thead><tr><th>model</th><th style="text-align:right">price</th></tr></thead>
       <tbody>
-        <tr><td><a href="https://www.respawngt.com/products/xm2-8k-gaming-mouse" target="_blank">Endgame Gear XM2 8K</a></td><td style="text-align:right">RM379.00</td></tr>
+        <tr><td><a href="https://shop.g-wolves.com/products/g-wolves-fenrir-pro-8k-wireless-mouse?variant=45171071942853" target="_blank">G-Wolves Fenrir Pro</a></td><td style="text-align:right">RM654.98</td></tr>
+        <tr><td><a href="https://www.respawngt.com/products/atk-dragonfly-a9-mini-series-wireless-gaming-mouse" target="_blank">ATK Dragonfly A9 Mini (White)</a></td><td style="text-align:right">RM289.00</td></tr>
+        <tr><td><a href="https://www.respawngt.com/products/xm2-8k-gaming-mouse" target="_blank">Endgame Gear XM2 8K (White)</a></td><td style="text-align:right">RM379.00</td></tr>
         <tr><td><a href="https://shopee.com.my/Endgame-Gear-OP18k-V2-Wired-Gaming-Mouse-i.557758082.28788303788" target="_blank">Endgame Gear OP1 8K v2</a></td><td style="text-align:right">RM428.00</td></tr>
         <tr><td><a href="https://www.respawngt.com/products/pulsar-pacific-gold-prx-edition-x2-crazy-light-gaming-mouse-mini" target="_blank">Pulsar Pacific Gold PRX Edition X2mini CL</a></td><td style="text-align:right">RM679.00</td></tr>
         <tr><td><a href="https://shopee.com.my/wlmouse-Beast-X-lightweight-magnesium-alloy-mouse-Flower-Beast-series-3395-sensor-i.487885173.24253203537" target="_blank">WLMouse Beast X</a></td><td style="text-align:right">RM677.40</td></tr>
@@ -289,6 +332,7 @@
     <table>
       <thead><tr><th>model</th><th style="text-align:right">price</th></tr></thead>
       <tbody>
+        <tr><td><a href="https://www.respawngt.com/products/meow-gaming-ultraglide-skates-universal-dots-glass-series" target="_blank">Meow Ultraglide (Purple)</a></td><td style="text-align:right">RM15.00</td></tr>
         <tr><td><a href="https://shopee.com.my/TALONGAMES-Mouse-Skates-48-Dots-Universal-for-Cloth-Mousepads-High-Durability-Low-Noise-KUMO-i.162165097.40925635188" target="_blank">TALONGAMES KUMO</a></td><td style="text-align:right">RM37.77</td></tr>
         <tr><td><a href="https://www.respawngt.com/products/xraypad-obsidian-air-diy-mouse-skates-universal-dots-purple-dots-" target="_blank">Xraypad Obsidian Air</a></td><td style="text-align:right">RM50.00</td></tr>
         <tr><td><a href="https://www.respawngt.com/products/west-lab-dots-universal-mouse-skates" target="_blank">West Lab Black Dots</a></td><td style="text-align:right">RM15.00</td></tr>
@@ -299,9 +343,12 @@
   <!-- MOUSEPADS -->
   <div class="section" id="mousepads">
     <div class="section-label">mousepads</div>
+    <div class="current-shot" data-file="current-mousepad.jpg"><img src="current-mousepad.jpg" alt="current mousepad" onerror="this.style.display='none';this.parentElement.classList.add('empty');"></div>
+    <div class="current-caption">current: <strong>—</strong></div>
     <table>
       <thead><tr><th>model</th><th>size</th><th style="text-align:right">price</th></tr></thead>
       <tbody>
+        <tr><td><a href="https://www.respawngt.com/products/glsswrks-polarity-series-glass-mouse-pad" target="_blank">GLSSWRKS Polarity (White)</a></td><td>560×480</td><td style="text-align:right">RM579.00</td></tr>
         <tr><td><a href="https://shopee.com.my/Pulsar-eS-PD170-Gaming-Mousepad-i.557758082.53756644069" target="_blank">Pulsar eS PD170 XLSQ</a></td><td>500×500</td><td style="text-align:right">RM308.70</td></tr>
         <tr><td><a href="https://www.respawngt.com/products/kanami-hoshino-limited-edition-glass-mousepad-pre-order-" target="_blank">Kanami Hoshino Limited Edition Glass</a></td><td>490×420</td><td style="text-align:right">RM529.00</td></tr>
         <tr><td><a href="https://shopee.com.my/Artisan-NINJA-FX-Zero-Gaming-Mousepad-Original-Official-Malaysia-Authorized-Retailer-i.557758082.42868691752" target="_blank">Artisan NINJA FX Zero Mid XL</a></td><td>490×420</td><td style="text-align:right">RM281.33</td></tr>
@@ -332,6 +379,8 @@
   <!-- AUDIO -->
   <div class="section" id="audio">
     <div class="section-label">audio</div>
+    <div class="current-shot" data-file="current-audio.jpg"><img src="current-audio.jpg" alt="current audio" onerror="this.style.display='none';this.parentElement.classList.add('empty');"></div>
+    <div class="current-caption">current: <strong>—</strong></div>
     <table>
       <thead><tr><th>category</th><th>model</th><th style="text-align:right">price</th></tr></thead>
       <tbody>
@@ -356,10 +405,14 @@
   <!-- KEYBOARDS -->
   <div class="section" id="keyboards">
     <div class="section-label">keyboards</div>
+    <div class="current-shot" data-file="current-keyboard.jpg"><img src="current-keyboard.jpg" alt="current keyboard" onerror="this.style.display='none';this.parentElement.classList.add('empty');"></div>
+    <div class="current-caption">current: <strong>—</strong></div>
     <table>
       <thead><tr><th>category</th><th>model</th><th style="text-align:right">price</th></tr></thead>
       <tbody>
-        <tr><td class="category-cell">hall effect</td><td><a href="https://shopee.com.my/Melgeek-REAL67-Hall-Effect-Gaming-Keyboard-i.557758082.25595458845" target="_blank">Melgeek REAL67</a></td><td style="text-align:right">RM439.00</td></tr>
+        <tr><td class="category-cell">keypad</td><td><a href="https://shopee.com.my/Pulsar-Lab-XPAD-MINI-Gaming-Key-Pad-i.1650473718.53413682898" target="_blank">Pulsar Lab XPAD MINI</a></td><td style="text-align:right">RM200.00</td></tr>
+        <tr><td class="category-cell">hall effect</td><td><a href="https://shopee.com.my/MelGeek-MADE68-AIR-65-Wired-Low-Profile-Magnetic-Switch-Gaming-Keyboard-w-TTC-KOM-Mini-Switches-i.576537911.29888686757" target="_blank">Melgeek MADE68 Air</a></td><td style="text-align:right">RM588.72</td></tr>
+        <tr><td></td><td><a href="https://shopee.com.my/Melgeek-REAL67-Hall-Effect-Gaming-Keyboard-i.557758082.25595458845" target="_blank">Melgeek REAL67</a></td><td style="text-align:right">RM439.00</td></tr>
         <tr><td></td><td><a href="https://shopee.com.my/MAD-60HE-Mechanical-Keyboard-60-Gaming-Keyboard-RT-Rapid-Trigger-Magnetic-Switch-Contour-keycaps-i.1386968094.28765455715" target="_blank">MAD 60HE</a></td><td style="text-align:right">RM126.50</td></tr>
         <tr><td class="category-cell">custom</td><td><a href="https://diykeycap.com/en-my/products/finalkey-v65-r2?variant=43622830473437" target="_blank">Finalkey V65 R2 (Wine Red)</a></td><td style="text-align:right">RM513.29</td></tr>
         <tr><td class="category-cell">switches</td><td><a href="https://shopee.com.my/-LINEAR-Wuque-Studio-WS-Morandi-50gf-Linear-Factory-Lubed-Mechanical-Switch-i.953374917.27533273901" target="_blank">Wuque Studio WS Morandi (70pcs)</a></td><td style="text-align:right">RM117.60</td></tr>
@@ -410,15 +463,15 @@
     <table>
       <thead><tr><th>category</th><th style="text-align:right">total</th></tr></thead>
       <tbody>
-        <tr><td>mice</td><td style="text-align:right">RM2,419.90</td></tr>
-        <tr><td>skates</td><td style="text-align:right">RM102.77</td></tr>
-        <tr><td>mousepads</td><td style="text-align:right">RM1,650.47</td></tr>
+        <tr><td>mice</td><td style="text-align:right">RM3,363.88</td></tr>
+        <tr><td>skates</td><td style="text-align:right">RM117.77</td></tr>
+        <tr><td>mousepads</td><td style="text-align:right">RM2,229.47</td></tr>
         <tr><td>monitors</td><td style="text-align:right">RM1,163.36</td></tr>
         <tr><td>audio</td><td style="text-align:right">RM6,080.83</td></tr>
-        <tr><td>keyboards</td><td style="text-align:right">RM1,196.39</td></tr>
+        <tr><td>keyboards</td><td style="text-align:right">RM1,985.11</td></tr>
         <tr><td>other input devices</td><td style="text-align:right">RM4,473.82</td></tr>
         <tr><td>PC</td><td style="text-align:right">RM9,244.88</td></tr>
-        <tr class="total-row"><td><strong>total</strong></td><td style="text-align:right"><strong>RM26,332.42</strong> <span class="tag">≈ USD 6,624.50</span></td></tr>
+        <tr class="total-row"><td><strong>total</strong></td><td style="text-align:right"><strong>RM28,659.12</strong> <span class="tag">≈ USD 7,209.83</span></td></tr>
       </tbody>
     </table>
   </div>
