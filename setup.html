@@ -1,658 +1,478 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>aki — setup</title>
-<link rel="icon" id="favicon" type="image/png" href="">
+<meta name="description" content="aki's setup and peripherals — the neverending pile of useless stuff.">
+<meta name="theme-color" content="#78d6fb">
+<!-- link previews (discord, twitter, etc.) -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="aki">
+<meta property="og:title" content="aki — setup &amp; peripherals">
+<meta property="og:description" content="the neverending pile of useless stuff — every mouse, pad, keyboard and IEM, with prices.">
+<meta property="og:url" content="https://akiaims.xyz/setup.html">
+<meta property="og:image" content="https://akiaims.xyz/setup-desk.jpg">
+<meta property="og:image:width" content="1080">
+<meta property="og:image:height" content="810">
+<meta property="og:image:alt" content="aki's desk setup">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" id="favicon" href="favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Jersey+10&display=swap" rel="stylesheet">
+<script>
+  // apply saved theme + avatar tint before paint so there's no flash
+  try {
+    const t = localStorage.getItem('aki-theme'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
+    const c = localStorage.getItem('aki-tint');
+    if (c === 'mono') document.documentElement.classList.add('mono');
+    else if (c && !isNaN(c)) document.documentElement.style.setProperty('--h', c);
+    // first visit this session: hold the page for the boot intro (retro.js plays it); failsafe after 4s
+    if (!sessionStorage.getItem('aki-booted') && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      document.documentElement.classList.add('booting');
+      setTimeout(() => document.documentElement.classList.remove('booting'), 4000);
+    }
+  } catch (e) {}
+</script>
+<link rel="stylesheet" href="retro.css">
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+  /* staggered windows on wide screens */
+  .stage > .win { width: min(720px, 100%); }
+  .stage > .win:nth-child(odd)  { align-self: flex-start; }
+  .stage > .win:nth-child(even) { align-self: flex-end; }
+  #photos { width: min(640px, 100%); align-self: center; }
+  #readme, #skates { width: min(460px, 100%); }
+  #total { width: min(460px, 100%); align-self: center; }
 
-  body {
-    background: #ffffff;
-    color: #333333;
-    font-family: 'Inter', sans-serif;
-    font-size: 15px;
-    padding: 0;
-    transition: background 0.8s ease;
+  .bar-r { display: flex; align-items: center; gap: 8px; }
+  .cap.stamp { margin-top: 6px; text-align: right; font-size: 13px; }
+
+  /* sortable column headers */
+  .gear th button.sort {
+    all: unset;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+  }
+  .gear th button.sort:hover { color: var(--deep); }
+  .gear th button.sort:focus-visible { outline: 2px dashed var(--deep); outline-offset: 2px; }
+  .gear th .arr { display: inline-block; min-width: 9px; font-family: 'DotGothic16', monospace; font-size: 10px; }
+  .cnt { font-family: 'DotGothic16', monospace; font-size: 13px; letter-spacing: 0; text-transform: none; color: var(--mute); }
+
+  .memo {
+    margin: 0 0 10px;
+    padding-left: 10px;
+    border-left: 2px solid var(--line);
+    font-size: 14px;
+    color: var(--mute);
   }
 
-  .container {
-    max-width: 780px;
-    margin: 0 auto;
-    padding: 48px 24px;
-  }
+  /* ---------- gear tables ---------- */
+  .tbl { overflow-x: auto; }
 
-  .container + .container {
-    padding-top: 0;
-  }
-
-  .back {
-    display: inline-block;
-    color: #888;
-    text-decoration: none;
-    font-size: 11px;
-    letter-spacing: 0.1em;
-    margin-bottom: 32px;
-    transition: color 0.15s;
-  }
-  .back:hover { color: #333; }
-
-  h1 {
+  .gear { width: 100%; border-collapse: collapse; font-size: 15px; }
+  .gear th {
+    padding: 0 10px 6px 0;
+    border-bottom: 2px solid var(--line);
+    font-family: var(--display);
     font-size: 17px;
-    color: #333;
-    font-weight: 500;
-    letter-spacing: 0.05em;
-    margin-bottom: 4px;
-  }
-
-  .subtitle {
-    font-size: 13px;
-    color: #888;
-    margin-bottom: 40px;
-  }
-
-  .note {
-    border-left: 2px solid #ccc;
-    padding-left: 14px;
-    margin-bottom: 32px;
-    color: #777;
-    font-size: 14px;
-    line-height: 1.8;
-  }
-
-  .note a { color: #777; }
-  .note a:hover { color: #333; }
-
-  .section {
-    margin-bottom: 40px;
-  }
-
-  .section-label {
-    font-size: 10px;
-    letter-spacing: 0.2em;
-    color: #888;
+    font-weight: 400;
+    letter-spacing: .08em;
     text-transform: uppercase;
-    border-bottom: 1px solid #ccc;
-    padding-bottom: 8px;
-    margin-bottom: 16px;
-  }
-
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 14px;
-  }
-
-  thead th {
     text-align: left;
-    color: #888;
-    font-size: 11px;
-    letter-spacing: 0.12em;
-    font-weight: normal;
-    padding: 0 0 10px;
-    border-bottom: 1px solid #ccc;
+    white-space: nowrap;
+    color: var(--mute);
   }
-
-  tbody td {
-    padding: 10px 0;
-    border-bottom: 1px solid #ddd;
-    color: #777;
+  .gear td {
+    padding: 6px 10px 6px 0;
+    border-bottom: 1px dashed var(--line-soft);
     vertical-align: top;
   }
+  .gear tbody tr:last-child td { border-bottom: 0; }
+  .gear th:last-child, .gear td:last-child { padding-right: 0; }
+  .gear .num { text-align: right; white-space: nowrap; }
+  .gear .cat { font-size: 13px; color: var(--mute); white-space: nowrap; }
+  .gear a { text-decoration: none; }
+  .gear a:hover { text-decoration: underline; }
 
-  tbody tr:last-child td { border-bottom: none; }
-
-  tbody td:first-child { color: #333; }
-
-  a { color: #777; text-decoration: none; }
-  a:hover { color: #333; }
-
-  .category-cell {
-    color: #888;
+  .chip {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 0 5px;
+    border: 1px solid var(--line);
+    background: var(--pale);
+    color: var(--deep);
     font-size: 11px;
+    line-height: 1.5;
+    white-space: nowrap;
+    vertical-align: 1px;
   }
+  .gear a.chip:hover { background: var(--bar); text-decoration: none; }
+  /* what she actually uses day to day */
+  .chip.dd { border-color: var(--deep); background: var(--deep); color: var(--pale); }
 
-  .total-row td {
-    color: #333;
-    border-top: 1px solid #ccc;
-    padding-top: 12px;
+  /* ---------- totals receipt ---------- */
+  .receipt .total-row td {
+    padding-top: 10px;
+    border-top: 2px solid var(--line);
+    font-family: var(--display);
+    font-size: 22px;
+    letter-spacing: .04em;
+    text-transform: uppercase;
   }
+  .receipt .total-row strong { font-weight: 400; }
+  .receipt .total-row .chip { font-family: 'DotGothic16', monospace; letter-spacing: 0; text-transform: none; }
 
-  .toc {
-    margin-bottom: 40px;
-    color: #777;
-    font-size: 14px;
-    line-height: 2;
-  }
+  .files { list-style: none; margin: 12px 0 0; padding: 0; }
+  .files a { display: flex; justify-content: space-between; gap: 10px; padding: 3px 8px; text-decoration: none; }
+  .files a::before { content: '▸'; margin-right: 8px; color: var(--line); }
+  .files a span:first-child { flex: 1; }
+  .files a .ext { color: var(--mute); }
+  .files a:hover { background: var(--bar); }
 
-  .toc a {
-    color: #777;
-    display: block;
-  }
-
-  .toc a:hover { color: #333; }
-
-  .tag {
-    font-size: 10px;
-    color: #555;
-    background: #ddd;
-    padding: 1px 5px;
-    border-radius: 2px;
-    margin-left: 4px;
-  }
-
-  .current-shot {
-    position: relative;
-    width: 100%;
-    aspect-ratio: 5 / 2;
-    border-radius: 4px;
-    overflow: hidden;
-    background: #f2f2f2;
-    margin-bottom: 8px;
-  }
-
-  .current-shot img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-  }
-
-  .current-shot.empty { border: 1px dashed #ccc; background: #fafafa; }
-
-  .current-shot.empty::after {
-    content: 'add ' attr(data-file);
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #bbb;
-    font-size: 12px;
-    letter-spacing: 0.04em;
-  }
-
-  .current-caption {
-    font-size: 12px;
-    color: #888;
-    margin-bottom: 16px;
-  }
-
-  .current-caption strong { color: #555; font-weight: 500; }
-
-  .slideshow-wrap {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    margin: 0 auto 14px;
-    padding: 0 8px;
-  }
-
-  .slideshow {
-    position: relative;
-    width: 620px;
-    max-width: 100%;
-    flex: 0 1 620px;
-    aspect-ratio: 3 / 2;
-    border-radius: 4px;
-    overflow: hidden;
-    background: #f0f0f0;
-  }
-
-  .slideshow img {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    opacity: 0;
-    transition: opacity 1s ease;
-  }
-
-  .slideshow img.active { opacity: 1; }
-
-  /* show the bottom of the blue-pad shot instead of the middle */
-  .slideshow img[src="setup-6.jpg"] { object-position: center bottom; }
-
-  .dots {
-    display: flex;
-    justify-content: center;
-    gap: 7px;
-    margin: 0 auto 40px;
-  }
-
-  .dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: #ccc;
-    cursor: pointer;
-    transition: background 0.2s;
-  }
-
-  .dot.active { background: #888; }
-
-  .nav {
-    flex-shrink: 0;
-    width: 44px;
-    height: 44px;
-    padding: 0;
-    border: none;
-    border-radius: 50%;
-    background: #ececec;
-    color: #555;
-    font-size: 26px;
-    line-height: 1;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background 0.2s, color 0.2s;
-  }
-
-  .nav:hover { background: #dcdcdc; color: #222; }
-
+  /* less important monitor columns go on phones */
   @media (max-width: 500px) {
-    body { padding: 24px 16px 60px; }
-    .container { max-width: 100%; }
-    table { font-size: 11px; }
-    thead th { font-size: 9px; }
-    .section-label { font-size: 9px; }
-    /* hide less important columns on narrow screens */
-    table.monitors th:nth-child(3),
-    table.monitors td:nth-child(3),
-    table.monitors th:nth-child(4),
-    table.monitors td:nth-child(4),
-    table.monitors th:nth-child(5),
-    table.monitors td:nth-child(5) { display: none; }
+    .gear { font-size: 14px; }
+    .gear .cat { white-space: normal; }
+    /* tags drop under the price so the price column stays narrow */
+    .gear .num .chip { display: block; width: max-content; margin: 2px 0 0 auto; }
+    .gear.monitors th:nth-child(3), .gear.monitors td:nth-child(3),
+    .gear.monitors th:nth-child(4), .gear.monitors td:nth-child(4),
+    .gear.monitors th:nth-child(5), .gear.monitors td:nth-child(5) { display: none; }
   }
 </style>
 </head>
 <body>
-<div class="container">
-  <a class="back" href="index.html">← aki</a>
-  <h1>aki's setup & peripherals</h1>
-  <div class="subtitle">the neverending pile of useless stuff</div>
-</div>
+<canvas id="sky" aria-hidden="true"></canvas>
 
-<div class="slideshow-wrap">
-  <button class="nav prev" id="prev" aria-label="previous photo">‹</button>
-  <div class="slideshow" id="slideshow"></div>
-  <button class="nav next" id="next" aria-label="next photo">›</button>
-</div>
-<div class="dots" id="dots"></div>
+<a class="corner-btn back-btn" href="index.html">← aki</a>
+<button class="corner-btn theme-btn" id="themeBtn" type="button" aria-label="switch to light mode"></button>
 
-<div class="container">
+<header class="hero short" id="top">
+  <p class="hero-kicker">/aki/setup</p>
+  <h1 class="hero-title">setup</h1>
+  <p class="hero-tag">the neverending pile of useless stuff</p>
+  <a class="scroll-hint" href="#photos" aria-label="scroll to photos">⌄</a>
+</header>
 
-  <div class="note">
-    prices are in MYR. most items purchased on <a href="https://shopee.com.my" target="_blank">Shopee</a> or <a href="https://www.respawngt.com/" target="_blank">Respawn Gaming Tech</a>.<br>
-    prices may fluctuate from the time of purchase. links go to the original product pages.
-  </div>
+<main class="stage">
 
-  <div class="note">
-    you can see what i'm currently using on my <a href="https://kova.page/aki" target="_blank">kova&nbsp;↗</a>
-  </div>
-
-  <div class="toc">
-    <a href="#mice">— mice</a>
-    <a href="#skates">— skates</a>
-    <a href="#mousepads">— mousepads</a>
-    <a href="#monitors">— monitors</a>
-    <a href="#audio">— audio</a>
-    <a href="#keyboards">— keyboards</a>
-    <a href="#other">— other input devices</a>
-    <a href="#pc">— pc specs</a>
-    <a href="#total">— total</a>
-  </div>
-
-  <!-- MICE -->
-  <div class="section" id="mice">
-    <div class="section-label">mice</div>
-    <!-- TODO currently-using banner: add current-mouse.jpg + caption, then uncomment
-    <div class="current-shot" data-file="current-mouse.jpg"><img src="current-mouse.jpg" alt="current mouse" onerror="this.style.display='none';this.parentElement.classList.add('empty');"></div>
-    <div class="current-caption">current: <strong>—</strong></div>
-    -->
-    <table>
-      <thead><tr><th>model</th><th style="text-align:right">price</th></tr></thead>
-      <tbody>
-        <tr><td><a href="https://shopee.com.my/Endgame-Gear-OP18k-V2-Wired-Gaming-Mouse-i.557758082.28788303788" target="_blank">Endgame Gear OP1 8K v2</a></td><td style="text-align:right">RM428.00</td></tr>
-        <tr><td><a href="https://shop.g-wolves.com/products/g-wolves-fenrir-pro-8k-wireless-mouse?variant=45171071942853" target="_blank">G-Wolves Fenrir Pro</a></td><td style="text-align:right">RM654.98</td></tr>
-        <tr><td><a href="https://www.respawngt.com/products/atk-dragonfly-a9-mini-series-wireless-gaming-mouse" target="_blank">ATK Dragonfly A9 Mini (White)</a></td><td style="text-align:right">RM289.00</td></tr>
-        <tr><td><a href="https://www.respawngt.com/products/xm2-8k-gaming-mouse" target="_blank">Endgame Gear XM2 8K (White)</a></td><td style="text-align:right">RM379.00</td></tr>
-        <tr><td><a href="https://shopee.com.my/Endgame-Gear-OP18k-V2-Wired-Gaming-Mouse-i.557758082.28788303788" target="_blank">Endgame Gear OP1 8K v2</a> <a class="tag" href="https://kova.page/haime" target="_blank">gave to haime</a></td><td style="text-align:right">RM428.00</td></tr>
-        <tr><td><a href="https://www.respawngt.com/products/pulsar-pacific-gold-prx-edition-x2-crazy-light-gaming-mouse-mini" target="_blank">Pulsar Pacific Gold PRX Edition X2mini CL</a></td><td style="text-align:right">RM679.00</td></tr>
-        <tr><td><a href="https://shopee.com.my/wlmouse-Beast-X-lightweight-magnesium-alloy-mouse-Flower-Beast-series-3395-sensor-i.487885173.24253203537" target="_blank">WLMouse Beast X</a></td><td style="text-align:right">RM677.40</td></tr>
-        <tr><td><a href="https://shopee.com.my/VXE-MAD-R-R-MAJOR-wireless-dual-mode-gaming-mouse-PAW3395-3950-supports-wired-wireless-8k-i.487885173.26706447859" target="_blank">VXE MAD R 8K</a></td><td style="text-align:right">RM227.00</td></tr>
-        <tr><td><a href="https://shopee.com.my/Logitech-G-PRO-X-Superlight-Wireless-Gaming-Mouse-i.58359596.3876090618" target="_blank">Logitech GPX Superlight</a></td><td style="text-align:right">RM648.50</td></tr>
-        <tr><td><a href="https://shopee.com.my/Logitech-G304-Lightspeed-Wireless-Gaming-Mouse-HERO-Sensor-12000-DPI-Lightweight-6-Programmable-Buttons-i.1478787644.56306074333" target="_blank">Logitech G304</a></td><td style="text-align:right">RM60.00 <span class="tag">sale</span></td></tr>
-      </tbody>
-    </table>
-  </div>
-
-  <!-- SKATES -->
-  <div class="section" id="skates">
-    <div class="section-label">skates</div>
-    <table>
-      <thead><tr><th>model</th><th style="text-align:right">price</th></tr></thead>
-      <tbody>
-        <tr><td><a href="https://www.respawngt.com/products/meow-gaming-ultraglide-skates-universal-dots-glass-series" target="_blank">Meow Ultraglide (Purple)</a></td><td style="text-align:right">RM15.00</td></tr>
-        <tr><td><a href="https://shopee.com.my/TALONGAMES-Mouse-Skates-48-Dots-Universal-for-Cloth-Mousepads-High-Durability-Low-Noise-KUMO-i.162165097.40925635188" target="_blank">TALONGAMES KUMO</a></td><td style="text-align:right">RM37.77</td></tr>
-        <tr><td><a href="https://www.respawngt.com/products/xraypad-obsidian-air-diy-mouse-skates-universal-dots-purple-dots-" target="_blank">Xraypad Obsidian Air</a></td><td style="text-align:right">RM50.00</td></tr>
-        <tr><td><a href="https://www.respawngt.com/products/west-lab-dots-universal-mouse-skates" target="_blank">West Lab Black Dots</a></td><td style="text-align:right">RM15.00</td></tr>
-      </tbody>
-    </table>
-  </div>
-
-  <!-- MOUSEPADS -->
-  <div class="section" id="mousepads">
-    <div class="section-label">mousepads</div>
-    <!-- TODO currently-using banner: add current-mousepad.jpg + caption, then uncomment
-    <div class="current-shot" data-file="current-mousepad.jpg"><img src="current-mousepad.jpg" alt="current mousepad" onerror="this.style.display='none';this.parentElement.classList.add('empty');"></div>
-    <div class="current-caption">current: <strong>—</strong></div>
-    -->
-    <table>
-      <thead><tr><th>model</th><th>size</th><th style="text-align:right">price</th></tr></thead>
-      <tbody>
-        <tr><td><a href="https://www.respawngt.com/products/glsswrks-polarity-series-glass-mouse-pad" target="_blank">GLSSWRKS Polarity (White)</a></td><td>560×480</td><td style="text-align:right">RM579.00</td></tr>
-        <tr><td><a href="https://shopee.com.my/Pulsar-eS-PD170-Gaming-Mousepad-i.557758082.53756644069" target="_blank">Pulsar eS PD170 XLSQ</a></td><td>500×500</td><td style="text-align:right">RM308.70</td></tr>
-        <tr><td><a href="https://www.respawngt.com/products/kanami-hoshino-limited-edition-glass-mousepad-pre-order-" target="_blank">Kanami Hoshino Limited Edition Glass</a></td><td>490×420</td><td style="text-align:right">RM529.00</td></tr>
-        <tr><td><a href="https://shopee.com.my/Artisan-NINJA-FX-Zero-Gaming-Mousepad-Original-Official-Malaysia-Authorized-Retailer-i.557758082.42868691752" target="_blank">Artisan NINJA FX Zero Mid XL</a></td><td>490×420</td><td style="text-align:right">RM281.33</td></tr>
-        <tr><td><a href="https://shopee.com.my/Wallhacs-SP004-Frenzy-SORA-Coating-Gaming-Tempered-Glass-Mouse-Pad-Same-Style-Copy-Version-i.1080408605.27304038883" target="_blank">SP-004 Frenzy Sora Replica</a> <span class="tag">fake</span></td><td>500×500</td><td style="text-align:right">RM225.22</td></tr>
-        <tr><td>LGG Saturn Pro Soft XL</td><td>490×420</td><td style="text-align:right">RM276.22</td></tr>
-      </tbody>
-    </table>
-  </div>
-
-  <!-- MONITORS -->
-  <div class="section" id="monitors">
-    <div class="section-label">monitors</div>
-    <table>
-      <thead><tr><th>model</th><th>size</th><th>res</th><th>hz</th><th>panel</th><th style="text-align:right">price</th></tr></thead>
-      <tbody>
-        <tr>
-          <td><a href="https://shopee.com.my/LENOVO-LEGION-27Q-10-27-GAMING-MONITOR-(-27-IPS-QHD-0.5MS-240HZ-AMD-FREESYNC-HD-MI-DP-)-i.20108462.44206627745" target="_blank">Lenovo Legion 27Q-10</a></td>
-          <td>27"</td><td>2560×1440</td><td>240</td><td>IPS</td><td style="text-align:right">RM812.90</td>
-        </tr>
-        <tr>
-          <td><a href="https://shopee.com.my/AOC-Q27B30E-27-QHD-75Hz-IPS-Monitor-2560x1440-4ms-GtG-HDMI-DisplayPort-i.5529122.54655672107" target="_blank">AOC Q27B30E</a></td>
-          <td>27"</td><td>2560×1440</td><td>75</td><td>IPS</td><td style="text-align:right">RM350.46</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <!-- AUDIO -->
-  <div class="section" id="audio">
-    <div class="section-label">audio</div>
-    <!-- TODO currently-using banner: add current-audio.jpg + caption, then uncomment
-    <div class="current-shot" data-file="current-audio.jpg"><img src="current-audio.jpg" alt="current audio" onerror="this.style.display='none';this.parentElement.classList.add('empty');"></div>
-    <div class="current-caption">current: <strong>—</strong></div>
-    -->
-    <table>
-      <thead><tr><th>category</th><th>model</th><th style="text-align:right">price</th></tr></thead>
-      <tbody>
-        <tr><td class="category-cell">IEM</td><td><a href="https://shopee.com.my/7Hz-x-Crinacle-Zero-2-Updated-10mm-Dynamic-Driver-IEM-Wired-Earbuds-Earphones-Gaming-Earbuds-with-OFC-IEM-Cable-for-Musician-7Hz-x-Crinacle-Zero-2-IEM-Earbuds-10mm-Driver-Berwayar-dengan-Kabel-OFC-untuk-Pemuzik-i.188678203.53907065729" target="_blank">7Hz × Crinacle Zero 2</a></td><td style="text-align:right">RM65.64</td></tr>
-        <tr><td></td><td><a href="https://www.respawngt.com/products/tekkusai-lucid-no-mic-gaming-in-ear-monitor" target="_blank">Tekkusai Lucid</a></td><td style="text-align:right">RM729.00</td></tr>
-        <tr><td></td><td>Tangzu Wan'er S.G</td><td style="text-align:right">RM79.00</td></tr>
-        <tr><td></td><td><a href="https://shopee.com.my/Truthear-x-Crinacle-Zero-Red-In-Ear-Monitors-Dual-Dynamic-Drivers-with-0.78-2Pin-Cable-Earphones-IEM-(Zero-Red)-i.65895521.23342966759" target="_blank">Truthear × Crinacle Zero Red</a></td><td style="text-align:right">RM200.00 <span class="tag">2nd hand</span></td></tr>
-        <tr><td></td><td><a href="https://shopee.com.my/Moondrop-Chu-II-Chu-2-Aluminium-Magnesium-Alloy-10mm-Dynamic-Driver-In-Ear-Monitor-IEM-Earphone-(0.78mm-2-Pin-Type-C)-i.72068395.24202023436" target="_blank">Moondrop Chu II</a></td><td style="text-align:right">RM80.00</td></tr>
-        <tr><td></td><td><a href="https://shopee.com.my/Moondrop-Aria-Snow-Edition-High-Performance-Diamond-Like-LCP-Diaphragm-Dynamic-Driver-IEMS-In-Ear-Earphone-i.181652340.16722023873" target="_blank">Moondrop Aria SE</a></td><td style="text-align:right">RM349.00</td></tr>
-        <tr><td class="category-cell">AMP/DAC</td><td><a href="https://shopee.com.my/iFi-ZEN-DAC-V2-DAC-Amp-i.414731594.8164344947" target="_blank">iFi Zen DAC V2</a></td><td style="text-align:right">RM900.00 <span class="tag">2nd hand</span></td></tr>
-        <tr><td></td><td><a href="https://shopee.com.my/Fiio-JA11-USB-Type-C-to-3.5mm-IEM-Portable-DAC-and-Headphone-Amplifier-i.61782351.25482922124" target="_blank">Fiio JA11</a></td><td style="text-align:right">RM37.84</td></tr>
-        <tr><td class="category-cell">headphones</td><td><a href="https://shopee.com.my/beyerdynamic-DT-990-Pro-Professional-Over-Ear-Studio-Headphones-for-Audio-Enthusiasts-i.1396468573.27567050217" target="_blank">beyerdynamic DT 990 Pro 250Ω</a></td><td style="text-align:right">RM425.00</td></tr>
-        <tr><td class="category-cell">TWS</td><td><a href="https://shopee.com.my/Moondrop-Space-Travel-(-TWS-)-True-Wireless-Earphone-and-Small-Case-i.181652340.23051313631" target="_blank">Moondrop Space Travel</a></td><td style="text-align:right">RM115.00</td></tr>
-        <tr><td></td><td><a href="https://shopee.com.my/-D12-Promo-Nothing-Ear-(open)-Weightless-ultra-light-Open-Sound-Titanium-driver-AI-Clear-Voice-Tech-Chat-GPT--i.530429709.27461785498" target="_blank">Nothing Ear (open)</a></td><td style="text-align:right">RM699.00</td></tr>
-        <tr><td></td><td><a href="https://shopee.com.my/Sony-WF-1000XM5-Wireless-Earphones-Best-Noise-Cancelling-Technology-Astonishing-Sound-Quality-WF1000XM5-i.482293451.19582216959" target="_blank">Sony WF-1000XM5</a></td><td style="text-align:right">RM1,094.00</td></tr>
-        <tr><td class="category-cell">ANC headphones</td><td><a href="https://shopee.com.my/-FREE-TNG-Sony-WH-1000XM5-Wireless-Noise-Cancelling-Headphones-Over-Ear-ANC-Original-Malaysia-Warranty-i.1450270881.42508958982" target="_blank">Sony WH-1000XM5</a></td><td style="text-align:right">RM1,049.00</td></tr>
-        <tr><td class="category-cell">microphone</td><td>FIFINE AM8</td><td style="text-align:right">RM258.35</td></tr>
-      </tbody>
-    </table>
-  </div>
-
-  <!-- KEYBOARDS -->
-  <div class="section" id="keyboards">
-    <div class="section-label">keyboards</div>
-    <!-- TODO currently-using banner: add current-keyboard.jpg + caption, then uncomment
-    <div class="current-shot" data-file="current-keyboard.jpg"><img src="current-keyboard.jpg" alt="current keyboard" onerror="this.style.display='none';this.parentElement.classList.add('empty');"></div>
-    <div class="current-caption">current: <strong>—</strong></div>
-    -->
-    <table>
-      <thead><tr><th>category</th><th>model</th><th style="text-align:right">price</th></tr></thead>
-      <tbody>
-        <tr><td class="category-cell">keypad</td><td><a href="https://shopee.com.my/Pulsar-Lab-XPAD-MINI-Gaming-Key-Pad-i.1650473718.53413682898" target="_blank">Pulsar Lab XPAD MINI</a></td><td style="text-align:right">RM200.00</td></tr>
-        <tr><td class="category-cell">hall effect</td><td><a href="https://shopee.com.my/MelGeek-MADE68-AIR-65-Wired-Low-Profile-Magnetic-Switch-Gaming-Keyboard-w-TTC-KOM-Mini-Switches-i.576537911.29888686757" target="_blank">Melgeek MADE68 Air</a></td><td style="text-align:right">RM588.72</td></tr>
-        <tr><td></td><td><a href="https://shopee.com.my/Melgeek-REAL67-Hall-Effect-Gaming-Keyboard-i.557758082.25595458845" target="_blank">Melgeek REAL67</a></td><td style="text-align:right">RM439.00</td></tr>
-        <tr><td></td><td><a href="https://shopee.com.my/MAD-60HE-Mechanical-Keyboard-60-Gaming-Keyboard-RT-Rapid-Trigger-Magnetic-Switch-Contour-keycaps-i.1386968094.28765455715" target="_blank">MAD 60HE</a></td><td style="text-align:right">RM126.50</td></tr>
-        <tr><td class="category-cell">custom</td><td><a href="https://diykeycap.com/en-my/products/finalkey-v65-r2?variant=43622830473437" target="_blank">Finalkey V65 R2 (Wine Red)</a></td><td style="text-align:right">RM513.29</td></tr>
-        <tr><td class="category-cell">switches</td><td><a href="https://shopee.com.my/-LINEAR-Wuque-Studio-WS-Morandi-50gf-Linear-Factory-Lubed-Mechanical-Switch-i.953374917.27533273901" target="_blank">Wuque Studio WS Morandi (70pcs)</a></td><td style="text-align:right">RM117.60</td></tr>
-      </tbody>
-    </table>
-  </div>
-
-  <!-- OTHER -->
-  <div class="section" id="other">
-    <div class="section-label">other input devices</div>
-    <table>
-      <thead><tr><th>category</th><th>model</th><th style="text-align:right">price</th></tr></thead>
-      <tbody>
-        <tr><td class="category-cell">VR</td><td>Meta Quest 2</td><td style="text-align:right">gift :3</td></tr>
-        <tr><td class="category-cell">controller</td><td><a href="https://shopee.com.my/Game-controller-X20-Black-Myth-Wukong-PC-computer-switch-wireless-steam-elite-Gamepad-Joystick-For-Android-Pc-Laptop-i.448545978.29759931210" target="_blank">EasySMX X20</a></td><td style="text-align:right">RM177.00</td></tr>
-        <tr><td class="category-cell">drawing tablet</td><td><a href="https://shopee.com.my/One-By-Wacom-Drawing-Tablet-Small-Medium-(CTL-472-CTL-672)-Student-Designer-Drawing-Tablet-i.58359596.7914146150" target="_blank">Wacom CTL-472</a></td><td style="text-align:right">RM240.00</td></tr>
-        <tr><td class="category-cell">camera</td><td><a href="https://shopee.com.my/RAZER-Web-Camera-Kiyo-Kiyo-X-Kiyo-Pro-(USB-Streaming-Camera-with-High-Performance-Adaptive-Light-Sensor)-i.13741830.16879610422" target="_blank">Razer Kiyo</a></td><td style="text-align:right">RM209.00 <span class="tag">sale</span></td></tr>
-        <tr><td></td><td><a href="https://shopee.com.my/OBSBOT-Meet-SE-AI-Powered-Webcam-Full-HD-1080P-100fps-CMOS-HDR-Low-Light-Performance-Beauty-Mode-i.10709207.29576755643" target="_blank">OBSBOT Meet SE</a></td><td style="text-align:right">RM248.82</td></tr>
-        <tr><td class="category-cell">face tracking</td><td><a href="https://www.machines.com.my/products/iphone-11-64gb-black" target="_blank">iPhone 11</a></td><td style="text-align:right">RM3,599.00</td></tr>
-      </tbody>
-    </table>
-  </div>
-
-  <!-- PC -->
-  <div class="section" id="pc">
-    <div class="section-label">pc specs</div>
-    <div class="note" style="margin-bottom:16px">
-      bought a prebuilt from <a href="https://emarque.co/" target="_blank">EMARQUE</a> and they kinda did me dirty with cheap parts so i upgraded some components.
+  <section class="win" id="photos" aria-labelledby="photos-t">
+    <header class="bar"><span id="photos-t">Photos</span><button class="min" type="button" aria-label="collapse photos" aria-expanded="true">–</button></header>
+    <div class="body">
+      <div class="frame" id="frame"></div>
+      <div class="ctrl">
+        <button class="sq" id="prev" type="button" aria-label="previous photo">‹</button>
+        <span id="count" aria-live="polite">1 / 6</span>
+        <button class="sq" id="next" type="button" aria-label="next photo">›</button>
+      </div>
+      <p class="cap stamp">last updated @ july 4 2026</p>
     </div>
-    <table>
-      <thead><tr><th>part</th><th>model</th><th style="text-align:right">price</th></tr></thead>
-      <tbody>
-        <tr><td class="category-cell">case</td><td><a href="https://shopee.com.my/Lethal-Gaming-Gear-Saturn-PRO-i.557758082.23778283525" target="_blank">TECWARE TIMBER M (Black)</a></td><td style="text-align:right">RM168.30</td></tr>
-        <tr><td class="category-cell">motherboard</td><td><a href="https://shopee.com.my/MSI-B850M-Gaming-Plus-WIFI-mATX-Motherboard-AMD-AM5-i.1562367463.41010422432" target="_blank">MSI B850M Gaming Plus WIFI</a></td><td style="text-align:right">RM705.00</td></tr>
-        <tr><td class="category-cell">RAM</td><td><a href="https://shopee.com.my/G.SKILL-Aegis-5-DDR5-16GB-32GB-64GB-5600MHz-CL36-Memory-Kit-With-Intel-XMP-AMD-EXPO-PERFORMANCE-RAM-DESKTOP-i.576537911.46450747283" target="_blank">G.SKILL Aegis 5 DDR5 2×16GB</a></td><td style="text-align:right">RM1,975.58</td></tr>
-        <tr><td class="category-cell">CPU</td><td><a href="https://shopee.com.my/AMD-Ryzen-7-7800X3D-9800X3D-Processor-8-Cores-16-Threads-AM5-(Tray-Unit)-i.1562367463.24896478727" target="_blank">Ryzen 7 7800X3D</a></td><td style="text-align:right">RM1,695.00</td></tr>
-        <tr><td class="category-cell">GPU</td><td><a href="https://shopee.com.my/COLORFUL-GeForce-RTX-5070-NB-EX-V2-12GB-V-GDDR7-GRAPHICS-CARD-i.20108462.28179353205" target="_blank">RTX 5070</a></td><td style="text-align:right">RM3,399.00</td></tr>
-        <tr><td class="category-cell">storage</td><td><a href="https://shopee.com.my/TeamGroup-T-FORCE-Z44A5-512GB-1TB-M.2-2280-NVMe-GEN4x4-SSD-i.576537911.44800937576" target="_blank">T-FORCE Z44A5 512GB</a></td><td style="text-align:right">RM499.00</td></tr>
-        <tr><td></td><td><a href="https://shopee.com.my/Kingston-A400-240GB-480GB-960GB-SSD-SATA3-2.5-(SA400S37-120G-SA400S37-240G-SA400S37-480G-SA400S37-960G)-i.43829688.1235859045" target="_blank">Kingston A400 960GB</a></td><td style="text-align:right">RM583.00</td></tr>
-        <tr><td class="category-cell">PSU</td><td><a href="https://shopee.com.my/SEGOTEP-AN-SERIES-AN550W-(550W)-AN650W-(650W)-AN750W-(750W)-80-PLUS-STANDARD-POWER-SUPPLY-PSU-i.1290400725.40527141336" target="_blank">SEGOTEP AN750W</a></td><td style="text-align:right">RM220.00</td></tr>
-      </tbody>
-    </table>
-  </div>
+  </section>
 
-  <!-- TOTAL -->
-  <div class="section" id="total">
-    <div class="section-label">total damages</div>
-    <table>
-      <thead><tr><th>category</th><th style="text-align:right">total</th></tr></thead>
-      <tbody>
-        <tr><td>mice</td><td style="text-align:right">RM3,791.88</td></tr>
-        <tr><td>skates</td><td style="text-align:right">RM117.77</td></tr>
-        <tr><td>mousepads</td><td style="text-align:right">RM2,229.47</td></tr>
-        <tr><td>monitors</td><td style="text-align:right">RM1,163.36</td></tr>
-        <tr><td>audio</td><td style="text-align:right">RM6,080.83</td></tr>
-        <tr><td>keyboards</td><td style="text-align:right">RM1,985.11</td></tr>
-        <tr><td>other input devices</td><td style="text-align:right">RM4,473.82</td></tr>
-        <tr><td>PC</td><td style="text-align:right">RM9,244.88</td></tr>
-        <tr class="total-row"><td><strong>total</strong></td><td style="text-align:right"><strong>RM29,087.12</strong> <span class="tag">≈ USD 7,317.50</span></td></tr>
-      </tbody>
-    </table>
-  </div>
+  <section class="win" id="readme" aria-labelledby="readme-t">
+    <header class="bar"><span id="readme-t">readme.txt</span><button class="min" type="button" aria-label="collapse readme" aria-expanded="true">–</button></header>
+    <div class="body">
+      <p class="memo">prices are in MYR. most items purchased on <a href="https://shopee.com.my" target="_blank" rel="noopener">Shopee</a> or <a href="https://www.respawngt.com/" target="_blank" rel="noopener">Respawn Gaming Tech</a>. prices may fluctuate from the time of purchase. links go to the original product pages.</p>
+      <p class="memo">you can see what i'm currently using on my <a href="https://kova.page/aki" target="_blank" rel="noopener">kova&nbsp;↗</a> — or look for the <span class="chip dd">★ daily</span> tags.</p>
+      <ul class="files">
+        <li><a href="#mice"><span>mice</span><span class="ext" data-count-for="mice"></span></a></li>
+        <li><a href="#skates"><span>skates</span><span class="ext" data-count-for="skates"></span></a></li>
+        <li><a href="#mousepads"><span>mousepads</span><span class="ext" data-count-for="mousepads"></span></a></li>
+        <li><a href="#monitors"><span>monitors</span><span class="ext" data-count-for="monitors"></span></a></li>
+        <li><a href="#audio"><span>audio</span><span class="ext" data-count-for="audio"></span></a></li>
+        <li><a href="#keyboards"><span>keyboards</span><span class="ext" data-count-for="keyboards"></span></a></li>
+        <li><a href="#other"><span>other input devices</span><span class="ext" data-count-for="other"></span></a></li>
+        <li><a href="#pc"><span>pc specs</span><span class="ext" data-count-for="pc"></span></a></li>
+        <li><a href="#total"><span>total damages</span><span class="ext" id="toc-total"></span></a></li>
+      </ul>
+      <p class="cap stamp">gear list last updated @ november 10 2026</p>
+    </div>
+  </section>
 
-</div>
+  <!-- new items go at the TOP of their table -->
+
+  <section class="win" id="mice" data-gear aria-labelledby="mice-t">
+    <header class="bar"><span id="mice-t">Mice</span><span class="bar-r"><span class="cnt"></span><button class="min" type="button" aria-label="collapse mice" aria-expanded="true">–</button></span></header>
+    <div class="body">
+      <div class="tbl">
+        <table class="gear">
+          <thead><tr><th>model</th><th class="num">price</th></tr></thead>
+          <tbody>
+            <tr><td><a href="https://shopee.com.my/Endgame-Gear-OP18k-V2-Wired-Gaming-Mouse-i.557758082.28788303788" target="_blank" rel="noopener">Endgame Gear OP1 8K v2</a></td><td class="num">RM428.00</td></tr>
+            <tr><td><a href="https://shop.g-wolves.com/products/g-wolves-fenrir-pro-8k-wireless-mouse?variant=45171071942853" target="_blank" rel="noopener">G-Wolves Fenrir Pro</a> <span class="chip dd">★ daily</span></td><td class="num">RM654.98</td></tr>
+            <tr><td><a href="https://www.respawngt.com/products/atk-dragonfly-a9-mini-series-wireless-gaming-mouse" target="_blank" rel="noopener">ATK Dragonfly A9 Mini (White)</a></td><td class="num">RM289.00</td></tr>
+            <tr><td><a href="https://www.respawngt.com/products/xm2-8k-gaming-mouse" target="_blank" rel="noopener">Endgame Gear XM2 8K (White)</a></td><td class="num">RM379.00</td></tr>
+            <tr><td><a href="https://shopee.com.my/Endgame-Gear-OP18k-V2-Wired-Gaming-Mouse-i.557758082.28788303788" target="_blank" rel="noopener">Endgame Gear OP1 8K v2</a> <a class="chip" href="https://kova.page/haime" target="_blank" rel="noopener">gave to haime</a></td><td class="num">RM428.00</td></tr>
+            <tr><td><a href="https://www.respawngt.com/products/pulsar-pacific-gold-prx-edition-x2-crazy-light-gaming-mouse-mini" target="_blank" rel="noopener">Pulsar Pacific Gold PRX Edition X2mini CL</a></td><td class="num">RM679.00</td></tr>
+            <tr><td><a href="https://shopee.com.my/wlmouse-Beast-X-lightweight-magnesium-alloy-mouse-Flower-Beast-series-3395-sensor-i.487885173.24253203537" target="_blank" rel="noopener">WLMouse Beast X</a></td><td class="num">RM677.40</td></tr>
+            <tr><td><a href="https://shopee.com.my/VXE-MAD-R-R-MAJOR-wireless-dual-mode-gaming-mouse-PAW3395-3950-supports-wired-wireless-8k-i.487885173.26706447859" target="_blank" rel="noopener">VXE MAD R 8K</a></td><td class="num">RM227.00</td></tr>
+            <tr><td><a href="https://shopee.com.my/Logitech-G-PRO-X-Superlight-Wireless-Gaming-Mouse-i.58359596.3876090618" target="_blank" rel="noopener">Logitech GPX Superlight</a></td><td class="num">RM648.50</td></tr>
+            <tr><td><a href="https://shopee.com.my/Logitech-G304-Lightspeed-Wireless-Gaming-Mouse-HERO-Sensor-12000-DPI-Lightweight-6-Programmable-Buttons-i.1478787644.56306074333" target="_blank" rel="noopener">Logitech G304</a></td><td class="num">RM60.00 <span class="chip">sale</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="win" id="skates" data-gear aria-labelledby="skates-t">
+    <header class="bar"><span id="skates-t">Skates</span><span class="bar-r"><span class="cnt"></span><button class="min" type="button" aria-label="collapse skates" aria-expanded="true">–</button></span></header>
+    <div class="body">
+      <div class="tbl">
+        <table class="gear">
+          <thead><tr><th>model</th><th class="num">price</th></tr></thead>
+          <tbody>
+            <tr><td><a href="https://www.respawngt.com/products/meow-gaming-ultraglide-skates-universal-dots-glass-series" target="_blank" rel="noopener">Meow Ultraglide (Purple)</a></td><td class="num">RM15.00</td></tr>
+            <tr><td><a href="https://shopee.com.my/TALONGAMES-Mouse-Skates-48-Dots-Universal-for-Cloth-Mousepads-High-Durability-Low-Noise-KUMO-i.162165097.40925635188" target="_blank" rel="noopener">TALONGAMES KUMO</a></td><td class="num">RM37.77</td></tr>
+            <tr><td><a href="https://www.respawngt.com/products/xraypad-obsidian-air-diy-mouse-skates-universal-dots-purple-dots-" target="_blank" rel="noopener">Xraypad Obsidian Air</a></td><td class="num">RM50.00</td></tr>
+            <tr><td><a href="https://www.respawngt.com/products/west-lab-dots-universal-mouse-skates" target="_blank" rel="noopener">West Lab Black Dots</a></td><td class="num">RM15.00</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="win" id="mousepads" data-gear aria-labelledby="mousepads-t">
+    <header class="bar"><span id="mousepads-t">Mousepads</span><span class="bar-r"><span class="cnt"></span><button class="min" type="button" aria-label="collapse mousepads" aria-expanded="true">–</button></span></header>
+    <div class="body">
+      <div class="tbl">
+        <table class="gear">
+          <thead><tr><th>model</th><th>size</th><th class="num">price</th></tr></thead>
+          <tbody>
+            <tr><td><a href="https://www.respawngt.com/products/glsswrks-polarity-series-glass-mouse-pad" target="_blank" rel="noopener">GLSSWRKS Polarity (White)</a></td><td>560×480</td><td class="num">RM579.00</td></tr>
+            <tr><td><a href="https://shopee.com.my/Pulsar-eS-PD170-Gaming-Mousepad-i.557758082.53756644069" target="_blank" rel="noopener">Pulsar eS PD170 XLSQ</a> <span class="chip dd">★ daily</span></td><td>500×500</td><td class="num">RM308.70</td></tr>
+            <tr><td><a href="https://www.respawngt.com/products/kanami-hoshino-limited-edition-glass-mousepad-pre-order-" target="_blank" rel="noopener">Kanami Hoshino Limited Edition Glass</a></td><td>490×420</td><td class="num">RM529.00</td></tr>
+            <tr><td><a href="https://shopee.com.my/Artisan-NINJA-FX-Zero-Gaming-Mousepad-Original-Official-Malaysia-Authorized-Retailer-i.557758082.42868691752" target="_blank" rel="noopener">Artisan NINJA FX Zero Mid XL</a></td><td>490×420</td><td class="num">RM281.33</td></tr>
+            <tr><td><a href="https://shopee.com.my/Wallhacs-SP004-Frenzy-SORA-Coating-Gaming-Tempered-Glass-Mouse-Pad-Same-Style-Copy-Version-i.1080408605.27304038883" target="_blank" rel="noopener">SP-004 Frenzy Sora Replica</a> <span class="chip">fake</span></td><td>500×500</td><td class="num">RM225.22</td></tr>
+            <tr><td>LGG Saturn Pro Soft XL</td><td>490×420</td><td class="num">RM276.22</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="win" id="monitors" data-gear aria-labelledby="monitors-t">
+    <header class="bar"><span id="monitors-t">Monitors</span><span class="bar-r"><span class="cnt"></span><button class="min" type="button" aria-label="collapse monitors" aria-expanded="true">–</button></span></header>
+    <div class="body">
+      <div class="tbl">
+        <table class="gear monitors">
+          <thead><tr><th>model</th><th>size</th><th>res</th><th>hz</th><th>panel</th><th class="num">price</th></tr></thead>
+          <tbody>
+            <tr><td><a href="https://shopee.com.my/LENOVO-LEGION-27Q-10-27-GAMING-MONITOR-(-27-IPS-QHD-0.5MS-240HZ-AMD-FREESYNC-HD-MI-DP-)-i.20108462.44206627745" target="_blank" rel="noopener">Lenovo Legion 27Q-10</a> <span class="chip dd">★ daily</span> <span class="chip">main</span></td><td>27"</td><td>2560×1440</td><td>240</td><td>IPS</td><td class="num">RM812.90</td></tr>
+            <tr><td><a href="https://shopee.com.my/AOC-Q27B30E-27-QHD-75Hz-IPS-Monitor-2560x1440-4ms-GtG-HDMI-DisplayPort-i.5529122.54655672107" target="_blank" rel="noopener">AOC Q27B30E</a> <span class="chip">secondary</span></td><td>27"</td><td>2560×1440</td><td>75</td><td>IPS</td><td class="num">RM350.46</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="win" id="audio" data-gear aria-labelledby="audio-t">
+    <header class="bar"><span id="audio-t">Audio</span><span class="bar-r"><span class="cnt"></span><button class="min" type="button" aria-label="collapse audio" aria-expanded="true">–</button></span></header>
+    <div class="body">
+      <div class="tbl">
+        <table class="gear">
+          <thead><tr><th>category</th><th>model</th><th class="num">price</th></tr></thead>
+          <tbody>
+            <tr><td class="cat">IEM</td><td><a href="https://shopee.com.my/MOONDROP-Chu-3-Chu-III-10mm-Composite-Diaphragm-Dynamic-Driver-IEM-Earphone-3.5mm-i.61782351.40883772480?extraParams=%7B%22display_model_id%22%3A381400998332%2C%22model_selection_logic%22%3A3%7D&amp;image_ids=sg-11134201-825ac-mv8s8hn9zx8h19" target="_blank" rel="noopener">Moondrop Chu III</a> <span class="chip dd">★ daily</span></td><td class="num">RM104.47</td></tr>
+            <tr><td></td><td><a href="https://shopee.com.my/7Hz-x-Crinacle-Zero-2-Updated-10mm-Dynamic-Driver-IEM-Wired-Earbuds-Earphones-Gaming-Earbuds-with-OFC-IEM-Cable-for-Musician-7Hz-x-Crinacle-Zero-2-IEM-Earbuds-10mm-Driver-Berwayar-dengan-Kabel-OFC-untuk-Pemuzik-i.188678203.53907065729" target="_blank" rel="noopener">7Hz × Crinacle Zero 2</a></td><td class="num">RM65.64</td></tr>
+            <tr><td></td><td><a href="https://www.respawngt.com/products/tekkusai-lucid-no-mic-gaming-in-ear-monitor" target="_blank" rel="noopener">Tekkusai Lucid</a></td><td class="num">RM729.00</td></tr>
+            <tr><td></td><td>Tangzu Wan'er S.G</td><td class="num">RM79.00</td></tr>
+            <tr><td></td><td><a href="https://shopee.com.my/Truthear-x-Crinacle-Zero-Red-In-Ear-Monitors-Dual-Dynamic-Drivers-with-0.78-2Pin-Cable-Earphones-IEM-(Zero-Red)-i.65895521.23342966759" target="_blank" rel="noopener">Truthear × Crinacle Zero Red</a></td><td class="num">RM200.00 <span class="chip">2nd hand</span></td></tr>
+            <tr><td></td><td><a href="https://shopee.com.my/Moondrop-Chu-II-Chu-2-Aluminium-Magnesium-Alloy-10mm-Dynamic-Driver-In-Ear-Monitor-IEM-Earphone-(0.78mm-2-Pin-Type-C)-i.72068395.24202023436" target="_blank" rel="noopener">Moondrop Chu II</a></td><td class="num">RM80.00</td></tr>
+            <tr><td></td><td><a href="https://shopee.com.my/Moondrop-Aria-Snow-Edition-High-Performance-Diamond-Like-LCP-Diaphragm-Dynamic-Driver-IEMS-In-Ear-Earphone-i.181652340.16722023873" target="_blank" rel="noopener">Moondrop Aria SE</a></td><td class="num">RM349.00</td></tr>
+            <tr><td class="cat">AMP/DAC</td><td><a href="https://shopee.com.my/iFi-ZEN-DAC-V2-DAC-Amp-i.414731594.8164344947" target="_blank" rel="noopener">iFi Zen DAC V2</a> <span class="chip dd">★ daily</span></td><td class="num">RM900.00 <span class="chip">2nd hand</span></td></tr>
+            <tr><td></td><td><a href="https://shopee.com.my/Fiio-JA11-USB-Type-C-to-3.5mm-IEM-Portable-DAC-and-Headphone-Amplifier-i.61782351.25482922124" target="_blank" rel="noopener">Fiio JA11</a></td><td class="num">RM37.84</td></tr>
+            <tr><td class="cat">headphones</td><td><a href="https://shopee.com.my/beyerdynamic-DT-990-Pro-Professional-Over-Ear-Studio-Headphones-for-Audio-Enthusiasts-i.1396468573.27567050217" target="_blank" rel="noopener">beyerdynamic DT 990 Pro 250Ω</a></td><td class="num">RM425.00</td></tr>
+            <tr><td class="cat">TWS</td><td><a href="https://shopee.com.my/Moondrop-Space-Travel-(-TWS-)-True-Wireless-Earphone-and-Small-Case-i.181652340.23051313631" target="_blank" rel="noopener">Moondrop Space Travel</a></td><td class="num">RM115.00</td></tr>
+            <tr><td></td><td><a href="https://shopee.com.my/-D12-Promo-Nothing-Ear-(open)-Weightless-ultra-light-Open-Sound-Titanium-driver-AI-Clear-Voice-Tech-Chat-GPT--i.530429709.27461785498" target="_blank" rel="noopener">Nothing Ear (open)</a></td><td class="num">RM699.00</td></tr>
+            <tr><td></td><td><a href="https://shopee.com.my/Sony-WF-1000XM5-Wireless-Earphones-Best-Noise-Cancelling-Technology-Astonishing-Sound-Quality-WF1000XM5-i.482293451.19582216959" target="_blank" rel="noopener">Sony WF-1000XM5</a></td><td class="num">RM1,094.00</td></tr>
+            <tr><td class="cat">ANC headphones</td><td><a href="https://shopee.com.my/-FREE-TNG-Sony-WH-1000XM5-Wireless-Noise-Cancelling-Headphones-Over-Ear-ANC-Original-Malaysia-Warranty-i.1450270881.42508958982" target="_blank" rel="noopener">Sony WH-1000XM5</a></td><td class="num">RM1,049.00</td></tr>
+            <tr><td class="cat">microphone</td><td>FIFINE AM8</td><td class="num">RM258.35</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="win" id="keyboards" data-gear aria-labelledby="keyboards-t">
+    <header class="bar"><span id="keyboards-t">Keyboards</span><span class="bar-r"><span class="cnt"></span><button class="min" type="button" aria-label="collapse keyboards" aria-expanded="true">–</button></span></header>
+    <div class="body">
+      <div class="tbl">
+        <table class="gear">
+          <thead><tr><th>category</th><th>model</th><th class="num">price</th></tr></thead>
+          <tbody>
+            <tr><td class="cat">keypad</td><td><a href="https://shopee.com.my/Pulsar-Lab-XPAD-MINI-Gaming-Key-Pad-i.1650473718.53413682898" target="_blank" rel="noopener">Pulsar Lab XPAD MINI</a></td><td class="num">RM200.00</td></tr>
+            <tr><td class="cat">hall effect</td><td><a href="https://shopee.com.my/MelGeek-MADE68-AIR-65-Wired-Low-Profile-Magnetic-Switch-Gaming-Keyboard-w-TTC-KOM-Mini-Switches-i.576537911.29888686757" target="_blank" rel="noopener">Melgeek MADE68 Air</a></td><td class="num">RM588.72</td></tr>
+            <tr><td></td><td><a href="https://shopee.com.my/Melgeek-REAL67-Hall-Effect-Gaming-Keyboard-i.557758082.25595458845" target="_blank" rel="noopener">Melgeek REAL67</a> <span class="chip dd">★ daily</span></td><td class="num">RM439.00</td></tr>
+            <tr><td></td><td><a href="https://shopee.com.my/MAD-60HE-Mechanical-Keyboard-60-Gaming-Keyboard-RT-Rapid-Trigger-Magnetic-Switch-Contour-keycaps-i.1386968094.28765455715" target="_blank" rel="noopener">MAD 60HE</a></td><td class="num">RM126.50</td></tr>
+            <tr><td class="cat">custom</td><td><a href="https://diykeycap.com/en-my/products/finalkey-v65-r2?variant=43622830473437" target="_blank" rel="noopener">Finalkey V65 R2 (Wine Red)</a></td><td class="num">RM513.29</td></tr>
+            <tr><td class="cat">switches</td><td><a href="https://shopee.com.my/-LINEAR-Wuque-Studio-WS-Morandi-50gf-Linear-Factory-Lubed-Mechanical-Switch-i.953374917.27533273901" target="_blank" rel="noopener">Wuque Studio WS Morandi (70pcs)</a></td><td class="num">RM117.60</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="win" id="other" data-gear aria-labelledby="other-t">
+    <header class="bar"><span id="other-t">Other Input Devices</span><span class="bar-r"><span class="cnt"></span><button class="min" type="button" aria-label="collapse other input devices" aria-expanded="true">–</button></span></header>
+    <div class="body">
+      <div class="tbl">
+        <table class="gear">
+          <thead><tr><th>category</th><th>model</th><th class="num">price</th></tr></thead>
+          <tbody>
+            <tr><td class="cat">VR</td><td>Meta Quest 2</td><td class="num">gift :3</td></tr>
+            <tr><td class="cat">controller</td><td><a href="https://shopee.com.my/Game-controller-X20-Black-Myth-Wukong-PC-computer-switch-wireless-steam-elite-Gamepad-Joystick-For-Android-Pc-Laptop-i.448545978.29759931210" target="_blank" rel="noopener">EasySMX X20</a></td><td class="num">RM177.00</td></tr>
+            <tr><td class="cat">drawing tablet</td><td><a href="https://shopee.com.my/One-By-Wacom-Drawing-Tablet-Small-Medium-(CTL-472-CTL-672)-Student-Designer-Drawing-Tablet-i.58359596.7914146150" target="_blank" rel="noopener">Wacom CTL-472</a></td><td class="num">RM240.00</td></tr>
+            <tr><td class="cat">camera</td><td><a href="https://shopee.com.my/RAZER-Web-Camera-Kiyo-Kiyo-X-Kiyo-Pro-(USB-Streaming-Camera-with-High-Performance-Adaptive-Light-Sensor)-i.13741830.16879610422" target="_blank" rel="noopener">Razer Kiyo</a></td><td class="num">RM209.00 <span class="chip">sale</span></td></tr>
+            <tr><td></td><td><a href="https://shopee.com.my/OBSBOT-Meet-SE-AI-Powered-Webcam-Full-HD-1080P-100fps-CMOS-HDR-Low-Light-Performance-Beauty-Mode-i.10709207.29576755643" target="_blank" rel="noopener">OBSBOT Meet SE</a></td><td class="num">RM248.82</td></tr>
+            <tr><td class="cat">face tracking</td><td><a href="https://www.machines.com.my/products/iphone-11-64gb-black" target="_blank" rel="noopener">iPhone 11</a></td><td class="num">RM3,599.00</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="win" id="pc" data-gear aria-labelledby="pc-t">
+    <header class="bar"><span id="pc-t">PC Specs</span><span class="bar-r"><span class="cnt"></span><button class="min" type="button" aria-label="collapse pc specs" aria-expanded="true">–</button></span></header>
+    <div class="body">
+      <p class="memo">bought a prebuilt from <a href="https://emarque.co/" target="_blank" rel="noopener">EMARQUE</a> and they kinda did me dirty with cheap parts so i upgraded some components.</p>
+      <div class="tbl">
+        <table class="gear">
+          <thead><tr><th>part</th><th>model</th><th class="num">price</th></tr></thead>
+          <tbody>
+            <tr><td class="cat">case</td><td><a href="https://shopee.com.my/TECWARE-TIMBER-M-TG-Micro-ATX-Wooden-Panel-PC-Casing-MID-TOWER-MATX-CASE-Black-White-GADGET-IT-i.383979059.26391427339?extraParams=%7B%22display_model_id%22%3A390619096883%2C%22model_selection_logic%22%3A3%7D&amp;image_ids=my-11134207-820lg-mu1nuvu0fxms1f" target="_blank" rel="noopener">TECWARE TIMBER M (Black)</a></td><td class="num">RM168.30</td></tr>
+            <tr><td class="cat">motherboard</td><td><a href="https://shopee.com.my/MSI-B850M-Gaming-Plus-WIFI-mATX-Motherboard-AMD-AM5-i.1562367463.41010422432" target="_blank" rel="noopener">MSI B850M Gaming Plus WIFI</a></td><td class="num">RM705.00</td></tr>
+            <tr><td class="cat">RAM</td><td><a href="https://shopee.com.my/G.SKILL-Aegis-5-DDR5-16GB-32GB-64GB-5600MHz-CL36-Memory-Kit-With-Intel-XMP-AMD-EXPO-PERFORMANCE-RAM-DESKTOP-i.576537911.46450747283" target="_blank" rel="noopener">G.SKILL Aegis 5 DDR5 2×16GB</a></td><td class="num">RM1,975.58</td></tr>
+            <tr><td class="cat">CPU</td><td><a href="https://shopee.com.my/AMD-Ryzen-7-7800X3D-9800X3D-Processor-8-Cores-16-Threads-AM5-(Tray-Unit)-i.1562367463.24896478727" target="_blank" rel="noopener">Ryzen 7 7800X3D</a></td><td class="num">RM1,695.00</td></tr>
+            <tr><td class="cat">GPU</td><td><a href="https://shopee.com.my/COLORFUL-GeForce-RTX-5070-NB-EX-V2-12GB-V-GDDR7-GRAPHICS-CARD-i.20108462.28179353205" target="_blank" rel="noopener">RTX 5070</a></td><td class="num">RM3,399.00</td></tr>
+            <tr><td class="cat">storage</td><td><a href="https://shopee.com.my/TeamGroup-T-FORCE-Z44A5-512GB-1TB-M.2-2280-NVMe-GEN4x4-SSD-i.576537911.44800937576" target="_blank" rel="noopener">T-FORCE Z44A5 512GB</a></td><td class="num">RM499.00</td></tr>
+            <tr><td></td><td><a href="https://shopee.com.my/Kingston-A400-240GB-480GB-960GB-SSD-SATA3-2.5-(SA400S37-120G-SA400S37-240G-SA400S37-480G-SA400S37-960G)-i.43829688.1235859045" target="_blank" rel="noopener">Kingston A400 960GB</a></td><td class="num">RM583.00</td></tr>
+            <tr><td class="cat">PSU</td><td><a href="https://shopee.com.my/SEGOTEP-AN-SERIES-AN550W-(550W)-AN650W-(650W)-AN750W-(750W)-80-PLUS-STANDARD-POWER-SUPPLY-PSU-i.1290400725.40527141336" target="_blank" rel="noopener">SEGOTEP AN750W</a></td><td class="num">RM220.00</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="win" id="total" aria-labelledby="total-t">
+    <header class="bar"><span id="total-t">Total Damages</span><button class="min" type="button" aria-label="collapse total damages" aria-expanded="true">–</button></header>
+    <div class="body">
+      <table class="gear receipt">
+        <thead><tr><th>category</th><th class="num">total</th></tr></thead>
+        <tbody>
+          <tr><td>mice</td><td class="num">RM4,470.88</td></tr>
+          <tr><td>skates</td><td class="num">RM117.77</td></tr>
+          <tr><td>mousepads</td><td class="num">RM2,199.47</td></tr>
+          <tr><td>monitors</td><td class="num">RM1,163.36</td></tr>
+          <tr><td>audio</td><td class="num">RM6,185.30</td></tr>
+          <tr><td>keyboards</td><td class="num">RM1,985.11</td></tr>
+          <tr><td>other input devices</td><td class="num">RM4,473.82</td></tr>
+          <tr><td>PC</td><td class="num">RM9,244.88</td></tr>
+          <tr class="total-row"><td>total</td><td class="num"><strong>RM29,840.59</strong> <span class="chip">≈ USD 7,507.05</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+</main>
+
+<footer class="end">
+  <p><a href="index.html">← back to aki</a> · <a href="#top">back to top ↑</a></p>
+</footer>
+
+<script src="retro.js"></script>
 <script>
-  // === setup photos — add/remove filenames here, first one shows first ===
-  const PHOTOS = [
-    'setup-desk.jpg',  // full desk (landscape)
-    'setup-3.jpg',     // pink pulsar closeup
-    'setup-5.jpg',     // pink pulsar + screen
-    'setup-6.jpg',     // black mouse, navy pad
-    'setup-7.jpg',     // peppermint oil
-    'setup-8.jpg',     // cat
-  ];
+(() => {
+  const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
 
-  (function initSlideshow() {
-    const stage = document.getElementById('slideshow');
-    const dots  = document.getElementById('dots');
-    if (!stage) return;
+  // item counts in each title bar + the readme index
+  $$('.win[data-gear]').forEach(win => {
+    const n = win.querySelectorAll('tbody tr').length;
+    win.querySelector('.cnt').textContent = n + (n === 1 ? ' item' : ' items');
+    const toc = $(`[data-count-for="${win.id}"]`);
+    if (toc) toc.textContent = n;
+  });
+  $('#toc-total').textContent = $('#total .total-row strong').textContent;
 
-    // shuffle a copy so the order is random on every page load
-    const order = PHOTOS.slice();
-    for (let i = order.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [order[i], order[j]] = [order[j], order[i]];
-    }
+  // click a column header to sort: first click (high→low for numbers, a→z for text), again to flip, a third time to reset
+  const textOf = td => [...td.childNodes]
+    .filter(n => !(n.classList && n.classList.contains('chip')))
+    .map(n => n.textContent).join('').trim().toLowerCase();
+  // prices: only real RM amounts count ("gift :3" sorts as no price); other number columns: first number in the cell
+  const priceOf = td => { const m = /RM([\d,.]+)/.exec(td.textContent); return m ? parseFloat(m[1].replace(/,/g, '')) : -1; };
+  const numOf = td => { const m = /[\d.]+/.exec(td.textContent.replace(/,/g, '')); return m ? parseFloat(m[0]) : -1; };
 
-    order.forEach((src, i) => {
-      const img = document.createElement('img');
-      img.src = src;
-      img.alt = "aki's setup";
-      if (i === 0) img.classList.add('active');
-      stage.appendChild(img);
-
-      const dot = document.createElement('div');
-      dot.className = 'dot' + (i === 0 ? ' active' : '');
-      dot.addEventListener('click', () => go(i));
-      dots.appendChild(dot);
+  $$('.win[data-gear] table.gear').forEach(table => {
+    const tbody = table.tBodies[0];
+    const rows = [...tbody.rows];
+    // categories are written only on the first row of each group; remember every row's group
+    // so sorted rows can show it, and the original text so the default order can be restored
+    let group = '';
+    rows.forEach((r, i) => {
+      r.dataset.i = i;
+      const first = r.cells[0];
+      r.dataset.orig = first.textContent;
+      if (first.classList.contains('cat') && first.textContent.trim()) group = first.textContent.trim();
+      r.dataset.group = group;
     });
+    const hasGroups = rows.some(r => r.cells[0].classList.contains('cat'));
+    if (hasGroups) rows.forEach(r => r.cells[0].classList.add('cat'));
 
-    // hide dots + arrows + skip auto-rotate when there's only one photo
-    if (order.length <= 1) {
-      dots.style.display = 'none';
-      document.querySelectorAll('.nav').forEach(b => b.style.display = 'none');
-      return;
-    }
+    const ths = [...table.tHead.rows[0].cells];
+    const state = { col: -1, dir: 0 };   // dir: 1 = ascending, -1 = descending, 0 = original order
+    ths.forEach((th, col) => {
+      const label = th.textContent;
+      const numeric = th.classList.contains('num') || /^(hz|size|res)$/.test(label);
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'sort';
+      btn.append(label);
+      const arr = document.createElement('span');
+      arr.className = 'arr';
+      arr.setAttribute('aria-hidden', 'true');
+      btn.append(arr);
+      th.replaceChildren(btn);
+      th.setAttribute('aria-sort', 'none');
 
-    let idx = 0, timer;
-    const imgs = stage.querySelectorAll('img');
-    const dotEls = dots.querySelectorAll('.dot');
+      btn.addEventListener('click', () => {
+        const firstDir = numeric ? -1 : 1;
+        state.dir = state.col !== col ? firstDir : state.dir === firstDir ? -firstDir : 0;
+        state.col = state.dir ? col : -1;
 
-    function go(n) {
-      idx = (n + order.length) % order.length;
-      imgs.forEach((im, i) => im.classList.toggle('active', i === idx));
-      dotEls.forEach((d, i) => d.classList.toggle('active', i === idx));
-      restart();
-    }
-    function restart() {
-      clearInterval(timer);
-      timer = setInterval(() => go(idx + 1), 4000);
-    }
+        const key = r => th.classList.contains('num') ? priceOf(r.cells[col])
+          : numeric ? numOf(r.cells[col])
+          : (col === 0 && hasGroups ? r.dataset.group.toLowerCase() : textOf(r.cells[col]));
+        const sorted = state.dir
+          ? rows.slice().sort((a, b) => {
+              const ka = key(a), kb = key(b);
+              return (ka < kb ? -1 : ka > kb ? 1 : 0) * state.dir || a.dataset.i - b.dataset.i;
+            })
+          : rows;
+        // once sorted, every row shows its category; back in the original order only the group starts do
+        if (hasGroups) rows.forEach(r => { r.cells[0].textContent = state.dir ? r.dataset.group : r.dataset.orig; });
+        tbody.append(...sorted);
 
-    document.getElementById('prev').addEventListener('click', () => go(idx - 1));
-    document.getElementById('next').addEventListener('click', () => go(idx + 1));
+        ths.forEach((h, i) => {
+          const on = i === state.col;
+          h.setAttribute('aria-sort', on ? (state.dir === 1 ? 'ascending' : 'descending') : 'none');
+          h.querySelector('.arr').textContent = on ? (state.dir === 1 ? '▲' : '▼') : '';
+        });
+      });
+    });
+  });
 
-    restart();
-  })();
-
+  // favicon + palette tint from the discord avatar
   const DISCORD_ID = '250645109438152704';
-
-  function rgbToHsl(r,g,b){
-    r/=255;g/=255;b/=255;
-    const max=Math.max(r,g,b),min=Math.min(r,g,b);
-    let h,s,l=(max+min)/2;
-    if(max===min){h=s=0;}
-    else{
-      const d=max-min;
-      s=l>0.5?d/(2-max-min):d/(max+min);
-      switch(max){
-        case r:h=((g-b)/d+(g<b?6:0))/6;break;
-        case g:h=((b-r)/d+2)/6;break;
-        case b:h=((r-g)/d+4)/6;break;
-      }
-    }
-    return[Math.round(h*360),Math.round(s*100),Math.round(l*100)];
-  }
-
-  function hslToHex(h,s,l){
-    s/=100;l/=100;
-    const k=n=>(n+h/30)%12;
-    const a=s*Math.min(l,1-l);
-    const f=n=>l-a*Math.max(-1,Math.min(k(n)-3,Math.min(9-k(n),1)));
-    return'#'+[f(0),f(8),f(4)].map(x=>Math.round(x*255).toString(16).padStart(2,'0')).join('');
-  }
-
-  function getDominantColour(img){
-    const canvas=document.createElement('canvas');
-    canvas.width=canvas.height=32;
-    const ctx=canvas.getContext('2d');
-    ctx.drawImage(img,0,0,32,32);
-    const data=ctx.getImageData(0,0,32,32).data;
-    let r=0,g=0,b=0,count=0;
-    for(let i=0;i<data.length;i+=16){
-      const avg=(data[i]+data[i+1]+data[i+2])/3;
-      if(avg<30||avg>230)continue;
-      r+=data[i];g+=data[i+1];b+=data[i+2];count++;
-    }
-    if(!count)return null;
-    return[Math.round(r/count),Math.round(g/count),Math.round(b/count)];
-  }
-
-  function applyTheme(r,g,b){
-    const[h,s]=rgbToHsl(r,g,b);
-    const bg    =hslToHex(h,Math.min(s,40),88);
-    const border=hslToHex(h,Math.min(s,40),75);
-    const muted =hslToHex(h,Math.min(s,30),55);
-    const text  =hslToHex(h,Math.min(s,50),22);
-    const link  =hslToHex(h,Math.min(s,45),32);
-    const divCol=hslToHex(h,Math.min(s,35),78);
-    const tagCol=hslToHex(h,Math.min(s,40),60);
-
-    document.body.style.background=bg;
-    document.querySelectorAll('.section-label').forEach(el=>el.style.color=tagCol);
-    document.querySelectorAll('.back').forEach(el=>el.style.color=tagCol);
-    document.querySelectorAll('h1').forEach(el=>el.style.color=text);
-    document.querySelectorAll('.subtitle').forEach(el=>el.style.color=muted);
-    document.querySelectorAll('.note').forEach(el=>{el.style.borderColor=border;el.style.color=muted;});
-    document.querySelectorAll('.note a').forEach(el=>el.style.color=muted);
-    document.querySelectorAll('.toc a').forEach(el=>el.style.color=muted);
-    document.querySelectorAll('thead th').forEach(el=>el.style.color=tagCol);
-    document.querySelectorAll('tbody td:first-child').forEach(el=>el.style.color=text);
-    document.querySelectorAll('tbody td').forEach(el=>{el.style.borderColor=divCol;el.style.color=muted;});
-    document.querySelectorAll('tbody td:first-child').forEach(el=>el.style.color=text);
-    document.querySelectorAll('.category-cell').forEach(el=>el.style.color=tagCol);
-    document.querySelectorAll('.total-row td').forEach(el=>el.style.color=text);
-    document.querySelectorAll('a').forEach(el=>el.style.color=link);
-    document.querySelectorAll('.tag').forEach(el=>{
-      el.style.color=text;
-      el.style.background=hslToHex(h,Math.min(s,35),82);
-    });
-  }
-
-  async function extractAndApply(avatarUrl){
-    try{
-      const proxyUrl=`https://images.weserv.nl/?url=${encodeURIComponent(avatarUrl)}&w=64&h=64&fit=cover&output=png&t=${Date.now()}`;
-      const img=new Image();
-      img.crossOrigin='anonymous';
-      img.onload=()=>{
-        const colour=getDominantColour(img);
-        if(colour)applyTheme(...colour);
-      };
-      img.src=proxyUrl;
-    }catch(e){}
-  }
-
   fetch(`https://api.lanyard.rest/v1/users/${DISCORD_ID}`)
-    .then(r=>r.json())
-    .then(json=>{
-      if(!json.success)return;
-      const avatar=json.data.discord_user.avatar;
-      if(avatar){
-        const ext=avatar.startsWith('a_')?'gif':'png';
-        const url=`https://cdn.discordapp.com/avatars/${DISCORD_ID}/${avatar}.${ext}?size=128`;
-        document.getElementById('favicon').href=url;
-        extractAndApply(url);
-      }
-    }).catch(()=>{});
+    .then(r => r.json())
+    .then(j => {
+      const av = j.success && j.data.discord_user && j.data.discord_user.avatar;
+      if (av) retro.applyAvatar(`https://cdn.discordapp.com/avatars/${DISCORD_ID}/${av}.${av.startsWith('a_') ? 'gif' : 'png'}?size=128`);
+    })
+    .catch(() => {});
+})();
 </script>
 </body>
 </html>

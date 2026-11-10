@@ -1,0 +1,421 @@
+/* shared look for the retro-window pages (index-v2 / setup-v2) */
+
+/* ---------- palette (hue is swapped from the discord avatar when it's colourful) ---------- */
+:root {
+  --h: 198;
+  --sky: #02040f;
+  --panel: hsl(var(--h) 92% 88% / .9);
+  --panel-solid: hsl(var(--h) 92% 88%);
+  --bar: hsl(var(--h) 88% 72%);
+  --line: hsl(var(--h) 85% 56%);
+  --pale: hsl(var(--h) 100% 96%);
+  --deep: hsl(calc(var(--h) + 24) 84% 24%);
+  --mute: hsl(calc(var(--h) + 18) 46% 38%);
+  --shadow: hsl(calc(var(--h) + 24) 90% 10% / .55);
+  --hero-ink: #eaf8ff;
+  --hero-dim: hsl(var(--h) 80% 80%);
+  --hero-shadow: hsl(calc(var(--h) + 24) 85% 32%);
+  --line-soft: hsl(var(--h) 70% 66%);
+  /* titles + window bars; body text stays DotGothic16 */
+  --display: 'Jersey 10', 'DotGothic16', ui-monospace, monospace;
+}
+
+:root[data-theme="light"] {
+  --sky: #cdeeff;
+  --panel: hsl(var(--h) 100% 97% / .9);
+  --panel-solid: hsl(var(--h) 100% 97%);
+  --bar: hsl(var(--h) 85% 80%);
+  --shadow: hsl(calc(var(--h) + 24) 80% 30% / .28);
+  --hero-ink: hsl(calc(var(--h) + 24) 84% 22%);
+  --hero-dim: hsl(calc(var(--h) + 24) 50% 34%);
+  --hero-shadow: hsl(var(--h) 80% 76%);
+}
+
+/* greyscale palette — used when the discord avatar has no real colour */
+:root.mono {
+  --sky: #050505;
+  --panel: hsl(0 0% 90% / .9);
+  --panel-solid: hsl(0 0% 90%);
+  --bar: hsl(0 0% 76%);
+  --line: hsl(0 0% 46%);
+  --line-soft: hsl(0 0% 66%);
+  --pale: hsl(0 0% 97%);
+  --deep: hsl(0 0% 12%);
+  --mute: hsl(0 0% 34%);
+  --shadow: hsl(0 0% 0% / .55);
+  --hero-ink: #f2f2f2;
+  --hero-dim: hsl(0 0% 72%);
+  --hero-shadow: hsl(0 0% 28%);
+}
+
+:root.mono[data-theme="light"] {
+  --sky: #e6e6e6;
+  --panel: hsl(0 0% 98% / .9);
+  --panel-solid: hsl(0 0% 98%);
+  --bar: hsl(0 0% 85%);
+  --shadow: hsl(0 0% 0% / .22);
+  --hero-ink: hsl(0 0% 12%);
+  --hero-dim: hsl(0 0% 34%);
+  --hero-shadow: hsl(0 0% 80%);
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+
+html { background: var(--sky); scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  background: var(--sky);
+  color: var(--deep);
+  font-family: 'DotGothic16', ui-monospace, monospace;
+  font-size: 16px;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+#sky {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+:focus-visible { outline: 2px dashed var(--deep); outline-offset: 2px; }
+
+/* ---------- corner buttons (theme toggle, back) ---------- */
+.corner-btn {
+  position: fixed;
+  top: 14px;
+  z-index: 30;
+  min-width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  padding: 0 10px;
+  border: 2px solid var(--line);
+  background: var(--panel-solid);
+  color: var(--deep);
+  font: inherit;
+  font-size: 15px;
+  text-decoration: none;
+  box-shadow: 3px 3px 0 var(--shadow);
+  cursor: pointer;
+}
+.corner-btn:active { translate: 2px 2px; box-shadow: 1px 1px 0 var(--shadow); }
+.theme-btn { right: 14px; padding: 0; }
+.back-btn { left: 14px; }
+
+/* ---------- hero ---------- */
+.hero {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 max(16px, 8vw);
+}
+.hero.short { min-height: 72vh; min-height: 72svh; }
+
+.hero-kicker {
+  margin: 0 0 6px;
+  font-family: var(--display);
+  font-size: 19px;
+  letter-spacing: .04em;
+  color: var(--hero-dim);
+}
+
+.hero-title {
+  margin: 0;
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: clamp(88px, 18vw, 200px);
+  line-height: .85;
+  letter-spacing: .02em;
+  color: var(--hero-ink);
+  text-shadow: 5px 5px 0 var(--hero-shadow);
+}
+
+.hero-tag { margin: 14px 0 0; font-size: 18px; color: var(--hero-dim); }
+
+.scroll-hint {
+  position: absolute;
+  left: 50%;
+  bottom: 22px;
+  translate: -50% 0;
+  font-size: 26px;
+  line-height: 1;
+  color: var(--hero-ink);
+  text-decoration: none;
+  animation: bob 1.6s ease-in-out infinite;
+}
+
+@keyframes bob { 50% { transform: translateY(6px); } }
+
+.hero :focus-visible, .end :focus-visible { outline-color: var(--hero-ink); }
+
+/* ---------- windows ---------- */
+.stage {
+  position: relative;
+  z-index: 1;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 6vh 16px 14vh;
+  display: flex;
+  flex-direction: column;
+  gap: 52px;
+}
+
+.win {
+  position: relative;
+  width: min(440px, 100%);
+  background: var(--panel);
+  border: 2px solid var(--line);
+  box-shadow: 6px 6px 0 var(--shadow);
+  scroll-margin-top: 24px;
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 6px 4px 10px;
+  background: var(--bar);
+  border-bottom: 2px solid var(--line);
+  font-family: var(--display);
+  font-size: 21px;
+  line-height: 1.2;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--deep);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+@media (pointer: fine) and (min-width: 761px) {
+  .bar { cursor: grab; touch-action: none; }
+  .win.dragging .bar { cursor: grabbing; }
+}
+
+.min, .sq {
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 2px solid var(--line);
+  background: var(--pale);
+  color: var(--deep);
+  font-family: 'DotGothic16', ui-monospace, monospace;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+}
+.min:hover, .sq:hover { background: var(--panel-solid); }
+
+.body { padding: 14px 14px 16px; }
+.win.collapsed .body { display: none; }
+.win.collapsed { box-shadow: 4px 4px 0 var(--shadow); }
+
+.body a { color: var(--deep); }
+
+/* ---------- setup photo slideshow ---------- */
+.frame {
+  position: relative;
+  aspect-ratio: 3 / 2;
+  overflow: hidden;
+  border: 2px solid var(--line);
+  background: var(--pale);
+}
+.frame img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity .8s ease;
+}
+.frame img.on { opacity: 1; }
+.frame img[src="setup-6.webp"] { object-position: center bottom; }
+
+.ctrl { display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 10px; font-size: 14px; }
+.ctrl .sq { width: 30px; height: 30px; font-size: 18px; }
+.cap { margin: 10px 0 0; text-align: center; color: var(--mute); font-size: 14px; }
+
+/* ---------- pixel buttons ---------- */
+.btns { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 14px; }
+.btn {
+  display: inline-block;
+  padding: 6px 12px;
+  border: 2px solid var(--line);
+  background: var(--pale);
+  color: var(--deep);
+  text-decoration: none;
+  box-shadow: 3px 3px 0 var(--shadow);
+}
+.btn:hover { background: var(--bar); }
+.btn:active { translate: 2px 2px; box-shadow: 1px 1px 0 var(--shadow); }
+
+/* ---------- footer ---------- */
+.end {
+  position: relative;
+  z-index: 1;
+  padding: 0 16px 60px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--hero-dim);
+}
+.end a { color: var(--hero-ink); }
+
+/* ---------- effects ---------- */
+
+/* hero text rises in on load */
+.hero > :not(.scroll-hint) { animation: rise .8s cubic-bezier(.2, .7, .2, 1) both; }
+.hero > :nth-child(2) { animation-delay: .1s; }
+.hero > :nth-child(3) { animation-delay: .22s; }
+@keyframes rise { from { opacity: 0; transform: translateY(.25em); } to { opacity: 1; transform: none; } }
+
+/* title glitch: every few seconds a colour-split copy flickers over it and a slice tears sideways */
+.hero-title { position: relative; }
+.hero-title::before,
+.hero-title::after {
+  content: attr(data-text);
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: var(--hero-ink);
+  text-shadow: -3px 0 rgba(255, 70, 120, .85), 3px 0 rgba(70, 215, 255, .85);
+  visibility: hidden;
+  pointer-events: none;
+  animation: glitch-flash 7.4s steps(1) infinite;
+}
+.hero-title::after {
+  background: var(--sky);
+  clip-path: inset(54% -4% 24%);
+  animation-name: glitch-tear;
+}
+@keyframes glitch-flash {
+  0%, 61.9%  { visibility: hidden;  transform: none; }
+  62%        { visibility: visible; transform: translateX(-.05em); }
+  62.7%      { visibility: visible; transform: translateX(.03em); }
+  63.4%, 64.9% { visibility: visible; transform: none; }
+  65%, 88.9% { visibility: hidden;  transform: none; }
+  89%        { visibility: visible; transform: translateX(.04em); }
+  89.8%, 100% { visibility: hidden; transform: none; }
+}
+@keyframes glitch-tear {
+  0%, 61.9%  { visibility: hidden;  transform: none; }
+  62%        { visibility: visible; transform: translateX(-.1em); }
+  62.8%      { visibility: visible; transform: translateX(.06em); }
+  63.6%, 74.9% { visibility: hidden; transform: none; }
+  75%        { visibility: visible; transform: translateX(.07em); }
+  75.6%, 88.9% { visibility: hidden; transform: none; }
+  89%        { visibility: visible; transform: translateX(-.08em); }
+  89.8%, 100% { visibility: hidden; transform: none; }
+}
+
+/* film grain over everything */
+.fx-grain {
+  position: fixed;
+  left: -128px;
+  top: -128px;
+  width: calc(100vw + 256px);
+  height: calc(100vh + 256px);
+  z-index: 9000;
+  pointer-events: none;
+  opacity: .07;
+  animation: grain .5s steps(1) infinite;
+}
+:root[data-theme="light"] .fx-grain { opacity: .05; }
+@keyframes grain {
+  0%   { transform: translate(0, 0); }
+  25%  { transform: translate(-58px, 31px); }
+  50%  { transform: translate(44px, -67px); }
+  75%  { transform: translate(-23px, -42px); }
+}
+
+/* darker edges */
+.fx-vig {
+  position: fixed;
+  inset: 0;
+  z-index: 8999;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 50% 45%, transparent 55%, rgba(0, 0, 0, .5) 100%);
+}
+:root[data-theme="light"] .fx-vig { background: radial-gradient(ellipse at 50% 45%, transparent 60%, rgba(10, 40, 80, .14) 100%); }
+:root.mono[data-theme="light"] .fx-vig { background: radial-gradient(ellipse at 50% 45%, transparent 60%, rgba(0, 0, 0, .14) 100%); }
+
+/* windows rise in as they scroll into view (class added by retro.js, so no-js still shows everything) */
+.reveal .win {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity .6s ease, transform .6s cubic-bezier(.2, .7, .2, 1);
+  transition-delay: var(--rd, 0ms);
+}
+.reveal .win.shown { opacity: 1; transform: none; }
+
+/* boot intro (first page of a session) */
+.fx-boot {
+  position: fixed;
+  inset: 0;
+  z-index: 8995;
+  display: flex;
+  align-items: flex-end;
+  padding: max(24px, 8vh) max(16px, 8vw);
+  background: var(--sky);
+  color: var(--hero-ink);
+  transition: opacity .45s ease;
+}
+.fx-boot pre { margin: 0; font: 17px/1.7 'DotGothic16', ui-monospace, monospace; white-space: pre-wrap; }
+.fx-boot pre::after { content: '█'; margin-left: 4px; animation: blink-cursor .8s steps(1) infinite; }
+.fx-boot.out { opacity: 0; pointer-events: none; }
+@keyframes blink-cursor { 50% { opacity: 0; } }
+html.booting .hero, html.booting .stage, html.booting .end, html.booting .corner-btn { opacity: 0; }
+html.booting .hero > * { animation-play-state: paused; }
+
+/* full-size photo viewer */
+.frame { cursor: zoom-in; }
+dialog.lightbox {
+  width: min(1100px, 94vw);
+  max-width: none;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  overflow: visible;
+}
+dialog.lightbox::backdrop { background: rgba(0, 0, 0, .8); }
+.lb-win { width: 100%; }
+.lb-body { padding: 12px; }
+.lb-img {
+  display: block;
+  width: 100%;
+  max-height: 76vh;
+  object-fit: contain;
+  border: 2px solid var(--line);
+  background: #000;
+}
+
+/* page fades out before moving to the other page */
+.hero, .stage, .end { transition: opacity .3s ease; }
+html.leaving .hero, html.leaving .stage, html.leaving .end { opacity: 0; }
+
+/* ---------- small screens: stack the windows ---------- */
+@media (max-width: 760px) {
+  .stage > .win:nth-child(n) { align-self: stretch; width: 100%; margin: 0; }
+  .stage { gap: 36px; }
+  /* scroll away with the hero so they never sit on top of a window's buttons */
+  .corner-btn { position: absolute; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .scroll-hint { animation: none; }
+  .frame img { transition: none; }
+  .hero > :not(.scroll-hint), .hero-title::before, .hero-title::after, .fx-grain { animation: none; }
+}

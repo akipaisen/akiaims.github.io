@@ -1,233 +1,420 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>aki</title>
-<link rel="icon" id="favicon" type="image/png" href="">
+<meta name="description" content="aki — aim training, fps games, vrchat and way too many peripherals.">
+<meta name="theme-color" content="#78d6fb">
+<!-- link previews (discord, twitter, etc.) -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="aki">
+<meta property="og:title" content="aki">
+<meta property="og:description" content="c'est la vie — aim training, fps games, vrchat and way too many peripherals.">
+<meta property="og:url" content="https://akiaims.xyz/">
+<meta property="og:image" content="https://akiaims.xyz/setup-desk.jpg">
+<meta property="og:image:width" content="1080">
+<meta property="og:image:height" content="810">
+<meta property="og:image:alt" content="aki's desk setup">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" id="favicon" href="favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Jersey+10&display=swap" rel="stylesheet">
+<script>
+  // apply saved theme + avatar tint before paint so there's no flash
+  try {
+    const t = localStorage.getItem('aki-theme'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
+    const c = localStorage.getItem('aki-tint');
+    if (c === 'mono') document.documentElement.classList.add('mono');
+    else if (c && !isNaN(c)) document.documentElement.style.setProperty('--h', c);
+    // first visit this session: hold the page for the boot intro (retro.js plays it); failsafe after 4s
+    if (!sessionStorage.getItem('aki-booted') && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      document.documentElement.classList.add('booting');
+      setTimeout(() => document.documentElement.classList.remove('booting'), 4000);
+    }
+  } catch (e) {}
+</script>
+<link rel="stylesheet" href="retro.css">
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+  /* staggered windows on wide screens */
+  /* ---------- layout: a collage instead of one window per row ---------- */
+  .stage { gap: 36px; }
 
-  body {
-    background: #ffffff;
-    color: #2c3b2d;
-    font-family: 'Inter', sans-serif;
-    font-size: 15px;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 40px 16px;
-    transition: background 0.8s ease;
+  /* small windows flow into two balanced columns */
+  .cols { columns: 2; column-gap: 36px; }
+  .cols > .win { display: block; width: 100%; margin: 0 0 36px; break-inside: avoid; }
+  .cols > .win:nth-child(2) { margin-left: 28px; width: calc(100% - 28px); }
+  .cols > .win:nth-child(3) { margin-left: 18px; width: calc(100% - 18px); }
+
+  /* latest video + links side by side */
+  .pair { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); gap: 36px; align-items: start; }
+  .pair > .win { width: 100%; }
+  .pair > #links { margin-top: 40px; }
+
+  .win.wide { width: min(680px, 100%); align-self: center; }
+
+  @media (max-width: 960px) {
+    .pair { grid-template-columns: 1fr; }
+    .pair > #links { margin-top: 0; }
   }
 
-  .card {
-    background: #ffffff;
-    border: 1px solid #e0e0e0;
-    border-radius: 16px;
-    width: 100%;
-    max-width: 340px;
-    padding: 36px 32px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    transition: background 0.8s ease, border-color 0.8s ease;
-  }
-
-  .avatar-wrap {
-    position: relative;
-    width: 96px;
-    height: 96px;
-    flex-shrink: 0;
-    margin-bottom: 14px;
-    cursor: pointer;
-  }
+  /* ---------- about ---------- */
+  .about { display: grid; grid-template-columns: auto 1fr; gap: 14px; align-items: center; }
 
   .avatar {
-    width: 96px;
-    height: 96px;
-    border-radius: 50%;
-    background: #e0e0e0;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    position: relative;
+    display: block;
+    width: 88px;
+    height: 88px;
+    border: 2px solid var(--line);
+    background: var(--pale);
   }
+  .avatar img { display: block; width: 100%; height: 100%; object-fit: cover; }
 
-  .avatar img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 50%;
-  }
-
-  .status-dot {
-    position: absolute;
-    bottom: 3px;
-    right: 3px;
+  .sdot {
+    display: inline-block;
     width: 12px;
     height: 12px;
-    border-radius: 50%;
-    border: 2px solid #ffffff;
-    background: #aaaaaa;
+    background: #8a99a8;
+    border: 2px solid var(--panel-solid);
   }
+  .avatar .sdot { position: absolute; right: -6px; bottom: -6px; width: 16px; height: 16px; }
+  .sdot.online  { background: #3ba55c; }
+  .sdot.idle    { background: #faa61a; }
+  .sdot.dnd     { background: #ed4245; }
+  .sdot.offline { background: #8a99a8; }
 
-  .status-dot.online  { background: #3ba55c; }
-  .status-dot.idle    { background: #faa61a; }
-  .status-dot.dnd     { background: #ed4245; }
-  .status-dot.offline { background: #aaaaaa; }
+  .name { font-family: var(--display); font-size: 34px; line-height: 1; letter-spacing: .02em; }
+  .pronouns { margin-left: 6px; font-family: 'DotGothic16', monospace; font-size: 14px; letter-spacing: 0; color: var(--mute); }
+  .tag  { color: var(--mute); }
+  .age  { color: var(--mute); cursor: default; width: max-content; }
+  .age .dec { display: none; }
+  .age.exact .dec { display: inline; }
+  .age.exact .whole { display: none; }
 
-  .name {
-    font-size: 17px;
-    color: #333333;
-    font-weight: 500;
-    margin-bottom: 4px;
+  .interests { grid-column: 1 / -1; margin: 0; font-size: 14px; color: var(--mute); }
+
+  /* ---------- status ---------- */
+  .rows { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+  .rows li { display: flex; align-items: center; gap: 10px; }
+  .ic { width: 20px; display: grid; place-items: center; flex-shrink: 0; }
+  .rows .sdot { width: 10px; height: 10px; border-width: 0; }
+
+  /* discord custom status under the name */
+  .cstatus { display: flex; align-items: center; gap: 6px; margin-top: 2px; font-size: 14px; color: var(--deep); }
+  .cs-emoji { display: inline-flex; }
+  .cs-emoji img { width: 18px; height: 18px; object-fit: contain; }
+
+  /* twitch live: a blinking red square */
+  .live-dot { display: block; width: 10px; height: 10px; background: #e5383b; animation: blink 1.2s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: .25; } }
+  .live-up { margin-left: 6px; font-size: 13px; color: var(--mute); }
+  /* white heart needs an edge to show up on the light window */
+  #r-bpm .ic { filter: drop-shadow(0 0 1px rgba(0, 0, 0, .75)); }
+
+  /* ---------- now playing ---------- */
+  .eq { display: inline-flex; align-items: flex-end; gap: 2px; height: 10px; margin-left: 6px; }
+  .eq i { width: 3px; height: 4px; background: var(--deep); animation: eq .9s steps(4) infinite; }
+  .eq i:nth-child(2) { animation-delay: -.3s; }
+  .eq i:nth-child(3) { animation-delay: -.6s; }
+  @keyframes eq { 0% { height: 3px; } 50% { height: 10px; } 100% { height: 5px; } }
+
+  .np-on { display: grid; grid-template-columns: 72px 1fr; gap: 12px; align-items: center; }
+  .np-on img { width: 72px; height: 72px; object-fit: cover; border: 2px solid var(--line); background: var(--pale); }
+  .np-meta { min-width: 0; }
+  .np-song { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; text-decoration: none; }
+  .np-song:hover { text-decoration: underline; }
+  .np-artist { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 14px; color: var(--mute); }
+  .np-bar { height: 10px; margin-top: 8px; border: 2px solid var(--line); background: var(--pale); }
+  .np-bar i { display: block; width: 0; height: 100%; background: var(--line); transition: width 1s linear; }
+  .np-times { display: flex; justify-content: space-between; font-size: 13px; color: var(--mute); }
+  .np-off { margin: 0; color: var(--mute); }
+
+  /* ---------- links ---------- */
+  .files { list-style: none; margin: 0; padding: 0; }
+  .files a {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 3px 8px;
+    text-decoration: none;
   }
+  .files a::before { content: '▸'; margin-right: 8px; color: var(--line); }
+  .files a span:first-child { flex: 1; }
+  .files a .ext { color: var(--mute); }
+  .files a:hover { background: var(--bar); }
 
-  .tagline {
-    font-size: 12px;
-    color: #aaaaaa;
-    font-style: italic;
-    margin-bottom: 0;
+  /* ---------- top artists (last.fm) ---------- */
+  #topartists { width: min(420px, 100%); }
+  .ta { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+  .ta a {
+    display: grid;
+    grid-template-columns: 46px 1fr;
+    gap: 10px;
+    align-items: center;
+    padding: 3px;
+    text-decoration: none;
   }
-
-  .divider {
-    width: 100%;
-    border: none;
-    border-top: 1px solid #e0e0e0;
-    margin: 20px 0 16px;
+  .ta a:hover { background: var(--bar); }
+  .ta-art {
+    display: grid;
+    place-items: center;
+    width: 46px;
+    height: 46px;
+    object-fit: cover;
+    border: 2px solid var(--line);
+    background: var(--pale);
+    color: var(--mute);
   }
+  .ta-meta { min-width: 0; display: grid; gap: 4px; }
+  .ta-name { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .ta-rank { margin-right: 6px; color: var(--mute); }
+  .ta-row { display: flex; align-items: center; gap: 8px; }
+  .ta-bar { flex: 1; height: 10px; border: 2px solid var(--line); background: var(--pale); }
+  .ta-bar i { display: block; height: 100%; background: var(--line); }
+  .ta-plays { min-width: 4.8em; text-align: right; white-space: nowrap; font-size: 13px; color: var(--mute); }
+  .ta-msg { margin: 0; color: var(--mute); }
+  .ta-foot { margin: 12px 0 0; text-align: right; font-size: 14px; }
 
-  .section-label {
-    font-size: 10px;
-    letter-spacing: 0.15em;
-    color: #aaaaaa;
-    text-transform: uppercase;
-    margin-bottom: 12px;
-    align-self: flex-start;
-  }
-
-  .about-items {
-    width: 100%;
-    margin-bottom: 4px;
-  }
-
-  .about-item {
+  /* ---------- kovaak's ---------- */
+  .kv-volt {
     display: flex;
     align-items: center;
-    gap: 8px;
-    margin-bottom: 6px;
-    color: #666666;
-    font-size: 13px;
+    gap: 12px;
+    margin-bottom: 10px;
+    padding: 8px 10px;
+    border: 2px solid var(--deep);
+    background: var(--deep);
+    color: var(--pale);
+  }
+  .kv-volt b { display: block; font-family: var(--display); font-weight: 400; font-size: 28px; line-height: 1; letter-spacing: .04em; text-transform: uppercase; }
+  .kv-volt span { font-size: 13px; opacity: .8; }
+  .kv-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 14px; }
+  .kv-stats div { padding: 6px 4px 4px; border: 2px solid var(--line); background: var(--pale); text-align: center; }
+  .kv-stats b { display: block; font-family: var(--display); font-weight: 400; font-size: 26px; line-height: 1; }
+  .kv-stats span { font-size: 12px; color: var(--mute); }
+  .kv-head { margin: 0 0 6px; font-family: var(--display); font-size: 17px; letter-spacing: .08em; text-transform: uppercase; color: var(--mute); }
+  .kv-pbs { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+  .kv-pbs li { display: grid; padding-bottom: 6px; border-bottom: 1px dashed var(--line-soft); }
+  .kv-pbs li:last-child { padding-bottom: 0; border-bottom: 0; }
+  .kv-name { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .kv-meta { font-size: 13px; color: var(--mute); }
+  .kv-meta b { font-weight: 400; color: var(--deep); }
+  .kv-hot { padding: 0 4px; background: var(--deep); color: var(--pale); }
+  .kv-most { margin: 12px 0 0; font-size: 13px; color: var(--mute); }
+
+  /* ---------- latest youtube video ---------- */
+  .vid { position: relative; aspect-ratio: 16 / 9; border: 2px solid var(--line); background: #000; }
+  .vid iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+  .vid-foot { margin: 10px 0 0; text-align: right; font-size: 14px; }
+
+  @media (max-width: 760px) {
+    /* one stack; kovaak's moves below top artists so status stays near the top */
+    .cols { columns: auto; display: flex; flex-direction: column; gap: 36px; }
+    .cols > .win:nth-child(n) { margin: 0; width: 100%; }
+    #kovaaks { order: 1; }
   }
 
-  .about-age {
-    color: #666666;
-    font-size: 13px;
-    margin-bottom: 6px;
-    cursor: default;
+  /* easter egg window */
+  .cat-win {
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    z-index: 8990;
+    width: min(360px, 90vw);
+    translate: -50% -50%;
+    animation: pop .25s steps(3) both;
   }
+  .cat-win img { display: block; width: 100%; border: 2px solid var(--line); }
+  @keyframes pop { from { transform: scale(.85); opacity: 0; } to { transform: none; opacity: 1; } }
 
-  .about-age .decimal { display: none; }
-  .about-age:hover .decimal { display: inline; }
-  .about-age:hover .whole { display: none; }
-
-  .about-text {
-    color: #aaaaaa;
-    font-size: 13px;
-    line-height: 1.7;
+  @media (prefers-reduced-motion: reduce) {
+    .eq i { animation: none; }
+    .np-bar i { transition: none; }
+    .live-dot, .cat-win { animation: none; }
   }
-
-  .links {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .link-item {
-    display: block;
-    color: #666666;
-    text-decoration: none;
-    font-size: 14px;
-    padding: 5px 0;
-    transition: color 0.15s;
-  }
-
-  .link-item:hover { color: #333333; }
 </style>
 </head>
 <body>
+<canvas id="sky" aria-hidden="true"></canvas>
 
-<div class="card">
-  <a href="https://en.pronouns.page/@sleepyhazel" target="_blank" style="text-decoration:none">
-  <div class="avatar-wrap">
-    <div class="avatar" id="avatar">
-      <svg width="96" height="96" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="40" cy="40" r="40" fill="#e0e0e0"/>
-        <circle cx="40" cy="32" r="14" fill="#c0c0c0"/>
-        <ellipse cx="40" cy="72" rx="22" ry="16" fill="#c0c0c0"/>
-      </svg>
+<button class="corner-btn theme-btn" id="themeBtn" type="button" aria-label="switch to light mode"></button>
+
+<header class="hero" id="top">
+  <p class="hero-kicker">/aki</p>
+  <h1 class="hero-title">aki</h1>
+  <p class="hero-tag">c'est la vie</p>
+  <a class="scroll-hint" href="#about" aria-label="scroll to about">⌄</a>
+</header>
+
+<main class="stage">
+
+  <div class="cols">
+
+  <section class="win" id="about" aria-labelledby="about-t">
+    <header class="bar"><span id="about-t">About Me</span><button class="min" type="button" aria-label="collapse about me" aria-expanded="true">–</button></header>
+    <div class="body about">
+      <a class="avatar" href="https://en.pronouns.page/@sleepyhazel" target="_blank" rel="noopener" aria-label="aki's pronouns page">
+        <img id="avatar" width="88" height="88" alt="aki's avatar" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'><rect width='80' height='80' fill='%23c9e9f7'/><circle cx='40' cy='32' r='14' fill='%239cc7dc'/><ellipse cx='40' cy='74' rx='22' ry='16' fill='%239cc7dc'/></svg>">
+        <span class="sdot offline"></span>
+      </a>
+      <div>
+        <div class="name">aki <span class="pronouns">she/her</span></div>
+        <div class="tag">c'est la vie</div>
+        <div class="cstatus" id="cstatus" hidden><span class="cs-emoji" id="cs-emoji"></span><span id="cs-text"></span></div>
+        <div class="age" id="age" tabindex="0" title="exact age">age <span class="whole">23</span><span class="dec"></span></div>
+      </div>
+      <p class="interests">aimtraining · valorant · apex · fortnite · vrchat · peripherals</p>
     </div>
-    <div class="status-dot offline" id="status-dot"></div>
+  </section>
+
+  <section class="win" id="kovaaks" aria-labelledby="kv-t">
+    <header class="bar"><span id="kv-t">KovaaK's</span><button class="min" type="button" aria-label="collapse kovaak's" aria-expanded="true">–</button></header>
+    <div class="body">
+      <div class="kv-volt" id="kv-volt" hidden>
+        <div><b id="kv-volt-rank"></b><span id="kv-volt-sub"></span></div>
+      </div>
+      <div class="kv-stats" id="kv-stats" hidden>
+        <div><b id="kv-runs"></b><span>runs</span></div>
+        <div><b id="kv-scen"></b><span>scenarios</span></div>
+        <div><b id="kv-last"></b><span>last played</span></div>
+      </div>
+      <p class="kv-head">recent pbs</p>
+      <ol class="kv-pbs" id="kv-pbs" hidden></ol>
+      <p class="ta-msg" id="kv-msg">loading…</p>
+      <p class="kv-most" id="kv-most" hidden></p>
+      <p class="ta-foot"><a href="https://kovaaks.com/kovaaks/profile?username=akiaims" target="_blank" rel="noopener">full profile on kovaak's&nbsp;↗</a></p>
+    </div>
+  </section>
+
+  <section class="win" id="status" aria-labelledby="status-t">
+    <header class="bar"><span id="status-t">Status</span><button class="min" type="button" aria-label="collapse status" aria-expanded="true">–</button></header>
+    <div class="body">
+      <ul class="rows">
+        <li><span class="ic"><i class="sdot offline"></i></span><span id="t-status">checking…</span></li>
+        <li><span class="ic">🕐</span><span id="t-time"></span></li>
+        <li id="r-bpm" hidden><span class="ic">🤍</span><span id="t-bpm"></span></li>
+        <li id="r-game" hidden><span class="ic" id="i-game">🎮</span><span id="t-game"></span></li>
+        <li id="r-live" hidden><span class="ic"><i class="live-dot"></i></span><a href="https://www.twitch.tv/akiaims" target="_blank" rel="noopener">live on twitch&nbsp;↗</a><span class="live-up" id="t-live"></span></li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="win" id="np" aria-labelledby="np-t">
+    <header class="bar"><span id="np-t">Now Playing<span class="eq" id="eq" hidden aria-hidden="true"><i></i><i></i><i></i></span></span><button class="min" type="button" aria-label="collapse now playing" aria-expanded="true">–</button></header>
+    <div class="body">
+      <div class="np-on" id="np-on" hidden>
+        <img id="np-art" width="72" height="72" alt="">
+        <div class="np-meta">
+          <a class="np-song" id="np-song" target="_blank" rel="noopener"></a>
+          <div class="np-artist" id="np-artist"></div>
+          <div class="np-bar" role="progressbar" aria-label="song progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i id="np-fill"></i></div>
+          <div class="np-times"><span id="np-el">0:00</span><span id="np-tot">0:00</span></div>
+        </div>
+      </div>
+      <p class="np-off" id="np-off">nothing playing rn — see my <a href="https://www.last.fm/user/ecchisin" target="_blank" rel="noopener">last.fm&nbsp;↗</a></p>
+    </div>
+  </section>
+
+  <section class="win" id="topartists" aria-labelledby="ta-t">
+    <header class="bar"><span id="ta-t">Top Artists · 7 days</span><button class="min" type="button" aria-label="collapse top artists" aria-expanded="true">–</button></header>
+    <div class="body">
+      <ol class="ta" id="ta-list" hidden></ol>
+      <p class="ta-msg" id="ta-msg">loading…</p>
+      <p class="ta-foot"><a href="https://www.last.fm/user/ecchisin" target="_blank" rel="noopener">full stats on last.fm&nbsp;↗</a></p>
+    </div>
+  </section>
+
   </div>
-  </a>
 
-  <div class="name">aki</div>
-  <div class="tagline">c'est la vie</div>
+  <div class="pair">
 
-  <hr class="divider">
+  <section class="win" id="video" aria-labelledby="video-t">
+    <header class="bar"><span id="video-t">Latest Video</span><button class="min" type="button" aria-label="collapse latest video" aria-expanded="true">–</button></header>
+    <div class="body">
+      <!-- the channel's long-form uploads playlist (UULF + channel id minus "UC") always opens on the newest video -->
+      <div class="vid">
+        <iframe src="https://www.youtube-nocookie.com/embed/videoseries?list=UULFk--ZUn_jI1zT7t3crWzs-Q"
+                title="aki's latest youtube video" loading="lazy"
+                allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+      </div>
+      <p class="vid-foot"><a href="https://www.youtube.com/@akiaims" target="_blank" rel="noopener">more on my channel&nbsp;↗</a></p>
+    </div>
+  </section>
 
-  <div class="section-label">about</div>
-  <div class="about-items">
-    <div class="about-item" id="about-bpm" style="display:none">
-      <span>🩷</span><span id="bpm-text"></span>
+  <section class="win" id="links" aria-labelledby="links-t">
+    <header class="bar"><span id="links-t">Links</span><button class="min" type="button" aria-label="collapse links" aria-expanded="true">–</button></header>
+    <div class="body">
+      <ul class="files">
+        <li><a href="setup.html"><span>setup &amp; peripherals</span></a></li>
+        <li><a href="https://x.com/akiaims" target="_blank" rel="noopener"><span>twitter</span><span class="ext">↗</span></a></li>
+        <li><a href="https://www.youtube.com/@akiaims" target="_blank" rel="noopener"><span>youtube</span><span class="ext">↗</span></a></li>
+        <li><a href="https://www.twitch.tv/akiaims" target="_blank" rel="noopener"><span>twitch</span><span class="ext">↗</span></a></li>
+        <li><a href="https://steamcommunity.com/id/akiaims/" target="_blank" rel="noopener"><span>steam</span><span class="ext">↗</span></a></li>
+        <li><a href="https://ko-fi.com/akiaims" target="_blank" rel="noopener"><span>ko-fi</span><span class="ext">↗</span></a></li>
+        <li><a href="https://www.last.fm/user/ecchisin" target="_blank" rel="noopener"><span>last.fm</span><span class="ext">↗</span></a></li>
+        <li><a href="https://kova.page/aki" target="_blank" rel="noopener"><span>kova</span><span class="ext">↗</span></a></li>
+      </ul>
     </div>
-    <div class="about-item" id="about-time">
-      <span>🕐</span><span id="time-text"></span>
-    </div>
-    <div class="about-item" id="about-game" style="display:none">
-      <span id="game-emoji">🎮</span><span id="game-text"></span>
-    </div>
-    <div class="about-item" id="about-spotify" style="display:none">
-      <span>🎵</span><span id="spotify-text"></span>
-    </div>
-    <div class="about-age" id="exact-age"><span class="whole">22</span><span class="decimal"></span></div>
-    <div class="about-text">aimtraining, valorant, apex, bfv,<br>fortnite, vrchat, peripherals</div>
+  </section>
+
   </div>
 
-  <hr class="divider">
+  <section class="win wide" id="setup" aria-labelledby="setup-t">
+    <header class="bar"><span id="setup-t">Setup</span><button class="min" type="button" aria-label="collapse setup" aria-expanded="true">–</button></header>
+    <div class="body">
+      <div class="frame" id="frame"></div>
+      <div class="ctrl">
+        <button class="sq" id="prev" type="button" aria-label="previous photo">‹</button>
+        <span id="count" aria-live="polite">1 / 6</span>
+        <button class="sq" id="next" type="button" aria-label="next photo">›</button>
+      </div>
+      <p class="cap">the neverending pile of useless stuff.</p>
+      <div class="btns">
+        <a class="btn" href="setup.html">full gear list →</a>
+        <a class="btn" href="https://kova.page/aki" target="_blank" rel="noopener">currently using ↗</a>
+      </div>
+    </div>
+  </section>
 
-  <div class="section-label">links</div>
-  <div class="links">
-    <a class="link-item" href="setup.html">setup &amp; peripherals</a>
-    <a class="link-item" href="https://x.com/akiaims" target="_blank">twitter</a>
-    <a class="link-item" href="https://www.youtube.com/@akiaims" target="_blank">youtube</a>
-    <a class="link-item" href="https://www.twitch.tv/akiaims" target="_blank">twitch</a>
-    <a class="link-item" href="https://steamcommunity.com/id/akiaims/" target="_blank">steam</a>
-    <a class="link-item" href="https://ko-fi.com/akiaims" target="_blank">ko-fi</a>
-    <a class="link-item" href="https://www.last.fm/user/ecchisin" target="_blank">last.fm</a>
-    <a class="link-item" href="https://kova.page/aki" target="_blank">kova</a>
-  </div>
-</div>
+</main>
 
+<footer class="end">
+  <p>aki · c'est la vie · <a href="#top">back to top ↑</a></p>
+</footer>
+
+<script src="retro.js"></script>
 <script>
+(() => {
+  const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+
+  /* ================= age + local time ================= */
+  const BIRTH = new Date('2003-04-29T00:00:00+08:00').getTime(), YEAR = 365.25 * 864e5;
+  const years = () => (Date.now() - BIRTH) / YEAR;
+  const ageEl = $('#age');
+  let ageTimer = null;
+  ageEl.querySelector('.whole').textContent = Math.floor(years());
+  const ageOn = () => {
+    ageEl.classList.add('exact');
+    const u = () => { ageEl.querySelector('.dec').textContent = years().toFixed(8); };
+    u(); clearInterval(ageTimer); ageTimer = setInterval(u, 100);
+  };
+  const ageOff = () => { ageEl.classList.remove('exact'); clearInterval(ageTimer); };
+  ['mouseenter', 'focus'].forEach(ev => ageEl.addEventListener(ev, ageOn));
+  ['mouseleave', 'blur'].forEach(ev => ageEl.addEventListener(ev, ageOff));
+
+  const timeFmt = new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Kuala_Lumpur' });
+  const tickTime = () => { $('#t-time').textContent = timeFmt.format(new Date()).toLowerCase() + ' in malaysia'; };
+  tickTime();
+  setInterval(tickTime, 5000);
+
+  /* ================= lanyard (discord presence) ================= */
   const DISCORD_ID = '250645109438152704';
-
-  function updateTime() {
-    const now = new Date();
-    let h = now.getHours(), m = now.getMinutes();
-    const ampm = h >= 12 ? 'PM' : 'AM';
-    h = h % 12 || 12;
-    document.getElementById('time-text').textContent =
-      `${h}:${String(m).padStart(2,'0')} ${ampm}`;
-  }
-
-  function show(id, visible) {
-    document.getElementById(id).style.display = visible ? 'flex' : 'none';
-  }
+  const GAME_BLOCKLIST = ['enjoys it'];
+  const STATUS_TEXT = { online: 'online', idle: 'idle', dnd: 'do not disturb', offline: 'offline' };
+  let spotify = null, refetching = false;
 
   async function fetchLanyard() {
     try {
@@ -236,164 +423,346 @@
       if (!json.success) return;
       const d = json.data;
 
-      if (d.discord_user.avatar) {
-        const ext = d.discord_user.avatar.startsWith('a_') ? 'gif' : 'png';
-        const url = `https://cdn.discordapp.com/avatars/${DISCORD_ID}/${d.discord_user.avatar}.${ext}?size=128`;
-        document.getElementById('avatar').innerHTML = `<img src="${url}" alt="aki's avatar">`;
-        document.getElementById('favicon').href = url;
-        extractAndApply(url);
+      const av = d.discord_user && d.discord_user.avatar;
+      if (av) {
+        const url = `https://cdn.discordapp.com/avatars/${DISCORD_ID}/${av}.${av.startsWith('a_') ? 'gif' : 'png'}?size=160`;
+        if ($('#avatar').getAttribute('src') !== url) $('#avatar').src = url;
+        retro.applyAvatar(url);
       }
 
-      document.getElementById('status-dot').className = 'status-dot ' + (d.discord_status || 'offline');
+      const st = d.discord_status || 'offline';
+      $$('.sdot').forEach(el => { el.className = 'sdot ' + st; });
+      $('#t-status').textContent = STATUS_TEXT[st] || st;
 
-      const customStatus = d.activities?.find(a => a.type === 4);
-      const bpmMatch = customStatus?.state?.match(/(\d+)\s*bpm/i) ||
-                       customStatus?.name?.match(/(\d+)\s*bpm/i);
-      if (bpmMatch) {
-        document.getElementById('bpm-text').textContent = bpmMatch[1] + ' BPM';
-        show('about-bpm', true);
-      } else {
-        const pulsoid = d.activities?.find(a => a.name?.toLowerCase().includes('pulsoid') || a.details?.match(/\d+\s*bpm/i));
-        if (pulsoid) {
-          const m2 = (pulsoid.details || pulsoid.state || '').match(/(\d+)/);
-          if (m2) { document.getElementById('bpm-text').textContent = m2[1] + ' BPM'; show('about-bpm', true); }
-        } else { show('about-bpm', false); }
+      const acts = d.activities || [];
+
+      // heart rate: custom status first, then pulsoid / any "NN bpm" activity
+      let bpm = null;
+      const custom = acts.find(a => a.type === 4);
+      const m = custom && ((custom.state || '').match(/(\d+)\s*bpm/i) || (custom.name || '').match(/(\d+)\s*bpm/i));
+      if (m) bpm = m[1];
+      else {
+        const p = acts.find(a => (a.name || '').toLowerCase().includes('pulsoid') || /\d+\s*bpm/i.test(a.details || ''));
+        const m2 = p && (p.details || p.state || '').match(/(\d+)/);
+        if (m2) bpm = m2[1];
       }
+      $('#r-bpm').hidden = !bpm;
+      if (bpm) $('#t-bpm').textContent = bpm + ' bpm';
 
-      // one line for whatever "Playing" activity (type 0) is live.
-      // emoji is picked from the name; blocked custom presences are ignored.
-      // OyasumiVR wins if it's running (means asleep in VR alongside VRChat).
-      const GAME_BLOCKLIST = ['enjoys it'];
-      const playing = (d.activities || []).filter(a =>
-        a.type === 0 &&
-        !GAME_BLOCKLIST.some(b => a.name?.toLowerCase().includes(b))
-      );
-      const game = playing.find(a => a.name?.toLowerCase().includes('oyasumi')) || playing[0];
+      // discord custom status (emoji + text) under the name — skipped when it's just the bpm readout
+      const csText = custom && !m ? (custom.state || '').trim() : '';
+      const csEmoji = custom && !m ? custom.emoji : null;
+      $('#cstatus').hidden = !(csText || (csEmoji && (csEmoji.id || csEmoji.name)));
+      const emBox = $('#cs-emoji');
+      emBox.replaceChildren();
+      if (csEmoji && csEmoji.id) {
+        const img = new Image();
+        img.src = `https://cdn.discordapp.com/emojis/${csEmoji.id}.${csEmoji.animated ? 'gif' : 'png'}?size=48`;
+        img.alt = csEmoji.name || '';
+        emBox.append(img);
+      } else if (csEmoji && csEmoji.name) {
+        emBox.textContent = csEmoji.name;
+      }
+      $('#cs-text').textContent = csText;
+
+      // one line for whatever "Playing" activity is live; OyasumiVR wins (asleep in VR)
+      const playing = acts.filter(a => a.type === 0 && !GAME_BLOCKLIST.some(b => (a.name || '').toLowerCase().includes(b)));
+      const game = playing.find(a => (a.name || '').toLowerCase().includes('oyasumi')) || playing[0];
+      $('#r-game').hidden = !game;
       if (game) {
         const n = game.name.toLowerCase();
-        const emoji = n.includes('oyasumi') ? '💤'
-                    : n.includes('vrchat')  ? '🥽'
-                    : '🎮';
-        document.getElementById('game-emoji').textContent = emoji;
-        document.getElementById('game-text').textContent = game.name;
-        show('about-game', true);
-      } else {
-        show('about-game', false);
+        $('#i-game').textContent = n.includes('oyasumi') ? '💤' : n.includes('vrchat') ? '🥽' : '🎮';
+        $('#t-game').textContent = game.name;
       }
 
-      if (d.listening_to_spotify && d.spotify) {
-        document.getElementById('spotify-text').textContent = d.spotify.song + ' — ' + d.spotify.artist;
-        show('about-spotify', true);
-      } else {
-        show('about-spotify', false);
-      }
-    } catch(e) {}
+      spotify = d.listening_to_spotify && d.spotify ? d.spotify : null;
+      renderNowPlaying();
+    } catch (e) {}
   }
 
-  // --- colour extraction ---
-  function rgbToHsl(r, g, b) {
-    r /= 255; g /= 255; b /= 255;
-    const max = Math.max(r, g, b), min = Math.min(r, g, b);
-    let h, s, l = (max + min) / 2;
-    if (max === min) { h = s = 0; }
-    else {
-      const d = max - min;
-      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-      switch(max) {
-        case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
-        case g: h = ((b - r) / d + 2) / 6; break;
-        case b: h = ((r - g) / d + 4) / 6; break;
-      }
+  /* ================= now playing ================= */
+  const fmt = ms => { const s = Math.floor(Math.max(0, ms) / 1000); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+
+  function renderNowPlaying() {
+    const on = !!spotify;
+    $('#np-on').hidden = !on; $('#np-off').hidden = on; $('#eq').hidden = !on;
+    if (!on) return;
+    const art = $('#np-art');
+    if (spotify.album_art_url && art.getAttribute('src') !== spotify.album_art_url) art.src = spotify.album_art_url;
+    art.alt = spotify.album ? `album art for ${spotify.album}` : 'album art';
+    const song = $('#np-song');
+    song.textContent = spotify.song || '';
+    song.href = spotify.track_id ? `https://open.spotify.com/track/${spotify.track_id}` : 'https://open.spotify.com';
+    $('#np-artist').textContent = (spotify.artist || '').split('; ').join(', ');
+    tickNowPlaying();
+  }
+
+  function tickNowPlaying() {
+    if (!spotify || !spotify.timestamps) return;
+    const { start, end } = spotify.timestamps;
+    const total = end - start, elapsed = Math.min(total, Date.now() - start);
+    const pct = total > 0 ? elapsed / total * 100 : 0;
+    $('#np-fill').style.width = pct.toFixed(1) + '%';
+    $('.np-bar').setAttribute('aria-valuenow', Math.round(pct));
+    $('#np-el').textContent = fmt(elapsed);
+    $('#np-tot').textContent = fmt(total);
+    // song finished — grab the next one a bit early instead of waiting for the poll
+    if (elapsed >= total && !refetching) {
+      refetching = true;
+      setTimeout(() => { refetching = false; fetchLanyard(); }, 2000);
     }
-    return [Math.round(h * 360), Math.round(s * 100), Math.round(l * 100)];
   }
 
-  function hslToHex(h, s, l) {
-    s /= 100; l /= 100;
-    const k = n => (n + h / 30) % 12;
-    const a = s * Math.min(l, 1 - l);
-    const f = n => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
-    return '#' + [f(0), f(8), f(4)].map(x => Math.round(x * 255).toString(16).padStart(2, '0')).join('');
-  }
-
-  function getDominantColour(img) {
-    const canvas = document.createElement('canvas');
-    canvas.width = canvas.height = 32;
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(img, 0, 0, 32, 32);
-    const data = ctx.getImageData(0, 0, 32, 32).data;
-    let r = 0, g = 0, b = 0, count = 0;
-    for (let i = 0; i < data.length; i += 16) {
-      // skip very dark and very light pixels
-      const avg = (data[i] + data[i+1] + data[i+2]) / 3;
-      if (avg < 30 || avg > 230) continue;
-      r += data[i]; g += data[i+1]; b += data[i+2]; count++;
-    }
-    if (!count) return null;
-    return [Math.round(r/count), Math.round(g/count), Math.round(b/count)];
-  }
-
-  function applyTheme(r, g, b) {
-    const [h, s] = rgbToHsl(r, g, b);
-    // keep light theme — use high lightness variants
-    const bg     = hslToHex(h, Math.min(s, 40), 88);   // pale bg
-    const card   = hslToHex(h, Math.min(s, 35), 93);   // slightly lighter card
-    const border = hslToHex(h, Math.min(s, 40), 75);   // muted border
-    const muted  = hslToHex(h, Math.min(s, 30), 62);   // labels, tagline
-    const text   = hslToHex(h, Math.min(s, 50), 22);   // dark text
-    const link   = hslToHex(h, Math.min(s, 45), 32);   // links
-
-    document.body.style.background = bg;
-    document.querySelector('.card').style.background = card;
-    document.querySelector('.card').style.borderColor = border;
-    document.querySelector('.status-dot').style.borderColor = card;
-
-    // apply CSS vars for text
-    document.documentElement.style.setProperty('--col-muted', muted);
-    document.documentElement.style.setProperty('--col-text', text);
-    document.documentElement.style.setProperty('--col-link', link);
-    document.documentElement.style.setProperty('--col-border', border);
-
-    // update dividers and labels
-    document.querySelectorAll('.divider').forEach(el => el.style.borderColor = border);
-    document.querySelectorAll('.section-label').forEach(el => el.style.color = muted);
-    document.querySelectorAll('.tagline').forEach(el => el.style.color = muted);
-    document.querySelectorAll('.about-text').forEach(el => el.style.color = muted);
-    document.querySelectorAll('.name').forEach(el => el.style.color = text);
-    document.querySelectorAll('.about-item').forEach(el => el.style.color = link);
-    document.querySelectorAll('.about-age').forEach(el => el.style.color = link);
-    document.querySelectorAll('.link-item').forEach(el => el.style.color = link);
-  }
-
-  async function extractAndApply(avatarUrl) {
-    try {
-      // route through CORS proxy so canvas can read pixels
-      const proxyUrl = `https://images.weserv.nl/?url=${encodeURIComponent(avatarUrl)}&w=64&h=64&fit=cover&output=png&t=${Date.now()}`;
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      img.onload = () => {
-        const colour = getDominantColour(img);
-        if (colour) applyTheme(...colour);
-      };
-      img.src = proxyUrl;
-    } catch(e) {}
-  }
-
-  // --- lanyard ---
-  const BIRTHDATE = new Date('2003-04-29T00:00:00+08:00');
-  function updateAge() {
-    const now = new Date();
-    const years = (now - BIRTHDATE) / (365.25 * 24 * 60 * 60 * 1000);
-    document.querySelector('#exact-age .whole').textContent = Math.floor(years);
-    document.querySelector('#exact-age .decimal').textContent = years.toFixed(8);
-  }
-  updateAge();
-  setInterval(updateAge, 100);
-  updateTime();
-  setInterval(updateTime, 10000);
   fetchLanyard();
-  setInterval(fetchLanyard, 30000);
-</script>
+  setInterval(fetchLanyard, 20000);
+  setInterval(tickNowPlaying, 1000);
 
+  /* ================= top artists (last.fm, rolling 7 days) ================= */
+  // read-only public api key — fine to ship in the page. never put the shared secret here.
+  const LASTFM_KEY = '855d171b0f49e0d68f659b598fdff979';
+  const LASTFM_USER = 'ecchisin';
+  const BLANK_ART = '2a96cbd8b46e442fc41c2b86b821562f'; // last.fm's grey-star placeholder image
+
+  const lastfm = params => fetch('https://ws.audioscrobbler.com/2.0/?' +
+    new URLSearchParams({ ...params, api_key: LASTFM_KEY, format: 'json' })).then(r => r.json());
+
+  const coverOf = images => {
+    const url = ((images || []).find(i => i.size === 'large') || {})['#text'] || '';
+    return url && !url.includes(BLANK_ART) ? url : '';
+  };
+
+  function el(tag, cls, text) {
+    const e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text != null) e.textContent = text;
+    return e;
+  }
+
+  function artistRow(artist, rank, maxPlays, cover) {
+    const li = el('li');
+    const a = el('a');
+    a.href = /^https:\/\/www\.last\.fm\//.test(artist.url) ? artist.url : `https://www.last.fm/user/${LASTFM_USER}`;
+    a.target = '_blank'; a.rel = 'noopener';
+
+    let art;
+    if (cover) {
+      art = el('img', 'ta-art');
+      art.src = cover; art.alt = ''; art.width = 46; art.height = 46; art.loading = 'lazy';
+    } else {
+      art = el('span', 'ta-art', '♪');
+      art.setAttribute('aria-hidden', 'true');
+    }
+
+    const meta = el('span', 'ta-meta');
+    const name = el('span', 'ta-name');
+    name.append(el('span', 'ta-rank', rank + '.'), artist.name);
+    const plays = +artist.playcount;
+    const row = el('span', 'ta-row');
+    const bar = el('span', 'ta-bar');
+    const fill = el('i');
+    fill.style.width = (maxPlays ? plays / maxPlays * 100 : 0).toFixed(1) + '%';
+    bar.append(fill);
+    bar.setAttribute('aria-hidden', 'true');
+    row.append(bar, el('span', 'ta-plays', plays + (plays === 1 ? ' play' : ' plays')));
+    meta.append(name, row);
+
+    a.append(art, meta);
+    li.append(a);
+    return li;
+  }
+
+  async function loadTopArtists() {
+    const msg = $('#ta-msg'), list = $('#ta-list');
+    try {
+      const [top, albums] = await Promise.all([
+        lastfm({ method: 'user.gettopartists', user: LASTFM_USER, period: '7day', limit: 5 }),
+        lastfm({ method: 'user.gettopalbums', user: LASTFM_USER, period: '7day', limit: 100 })
+      ]);
+      if (top.error) throw new Error(top.message);
+      const artists = (top.topartists && top.topartists.artist) || [];
+      if (!artists.length) { msg.textContent = 'no scrobbles in the last 7 days'; return; }
+
+      // cover art = my most-played album by that artist this week
+      const covers = {};
+      for (const al of (albums.topalbums && albums.topalbums.album) || []) {
+        const key = al.artist.name.toLowerCase(), url = coverOf(al.image);
+        if (url && !covers[key]) covers[key] = url;
+      }
+      // fallback: the artist's most popular album overall
+      await Promise.all(artists.filter(a => !covers[a.name.toLowerCase()]).map(async a => {
+        try {
+          const r = await lastfm({ method: 'artist.gettopalbums', artist: a.name, limit: 1 });
+          const url = coverOf((((r.topalbums || {}).album) || [])[0]?.image);
+          if (url) covers[a.name.toLowerCase()] = url;
+        } catch (e) {}
+      }));
+
+      const maxPlays = Math.max(...artists.map(a => +a.playcount));
+      list.replaceChildren(...artists.map((a, i) => artistRow(a, i + 1, maxPlays, covers[a.name.toLowerCase()])));
+      list.hidden = false;
+      msg.hidden = true;
+    } catch (e) {
+      msg.textContent = "couldn't reach last.fm rn";
+    }
+  }
+
+  loadTopArtists();
+
+  /* ================= kovaak's (public webapp api — it allows requests from this site) ================= */
+  const KV = 'https://kovaaks.com/webapp-backend', KV_USER = 'akiaims', KV_CACHE = 'aki-kovaaks-v2';
+  const TIERS = ['Novice', 'Intermediate', 'Advanced'];
+  const kvGet = path => fetch(KV + path).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); });
+  const fmtScore = n => (+n).toLocaleString('en-US', { maximumFractionDigits: 1 });
+  function ago(iso) {
+    const s = Math.max(0, (Date.now() - new Date(iso)) / 1000);
+    if (s < 3600) return Math.max(1, Math.round(s / 60)) + 'm ago';
+    if (s < 86400) return Math.round(s / 3600) + 'h ago';
+    if (s < 86400 * 14) return Math.round(s / 86400) + 'd ago';
+    return Math.round(s / 604800) + 'w ago';
+  }
+
+  async function fetchKovaaks() {
+    const PLAYS = `/user/scenario/total-play?username=${KV_USER}&max=100&sort_param%5B%5D=count&page=`;
+    const [prof, recent, first] = await Promise.all([
+      kvGet(`/user/profile/by-username?username=${KV_USER}`),
+      kvGet(`/user/activity/recent?username=${KV_USER}`),
+      kvGet(PLAYS + 0)
+    ]);
+    // total runs = plays summed over every scenario (the api pages them 100 at a time)
+    const pages = Math.ceil((first.total || 0) / 100);
+    const rest = await Promise.all(Array.from({ length: Math.max(0, pages - 1) },
+      (_, i) => kvGet(PLAYS + (i + 1)).catch(() => ({ data: [] }))));
+    const runs = [first, ...rest].reduce((sum, p) =>
+      sum + (p.data || []).reduce((s, d) => s + (+(d.counts && d.counts.plays) || 0), 0), 0);
+
+    // latest personal bests, one per scenario, each with its global rank
+    const seen = new Set();
+    const pbs = (Array.isArray(recent) ? recent : [])
+      .filter(a => a.type === 'HIGH_SCORE' && !seen.has(a.leaderboardId) && seen.add(a.leaderboardId))
+      .slice(0, 6);
+    const ranks = await Promise.all(pbs.map(p =>
+      kvGet(`/leaderboard/scores/global?leaderboardId=${p.leaderboardId}&page=0&max=5&usernameSearch=${KV_USER}`)
+        .then(j => ((j.data || []).find(d => d.steamId === prof.steamId) || {}).rank || null)
+        .catch(() => null)));
+
+    // voltaic rank: official benchmarks (by Tammas), newest season she's ranked in, highest tier with a rank
+    let volt = null;
+    try {
+      const BM = `/benchmarks/player-progress-rank?username=${KV_USER}&max=300&page=`;
+      const b0 = await kvGet(BM + 0);
+      const more = await Promise.all(Array.from({ length: Math.max(0, Math.ceil((b0.total || 0) / 300) - 1) },
+        (_, i) => kvGet(BM + (i + 1)).catch(() => ({ data: [] }))));
+      const ranked = [b0, ...more].flatMap(p => p.data || []).map(b => {
+        const m = b.benchmarkAuthor === 'Tammas' && /^Voltaic S(\d+) - (Novice|Intermediate|Advanced)$/i.exec(b.benchmarkName || '');
+        return m && b.rankName && !/no rank/i.test(b.rankName)
+          ? { season: +m[1], tier: m[2][0].toUpperCase() + m[2].slice(1).toLowerCase(), rank: b.rankName, icon: b.rankIcon }
+          : null;
+      }).filter(Boolean);
+      ranked.sort((a, b) => b.season - a.season || TIERS.indexOf(b.tier) - TIERS.indexOf(a.tier));
+      volt = ranked[0] || null;
+    } catch (e) {}
+
+    const top = (first.data || [])[0];
+    return {
+      volt,
+      runs, scenarios: first.total || 0, lastAccess: prof.lastAccess || null,
+      pbs: pbs.map((p, i) => ({ name: p.scenarioName, score: p.score, when: p.timestamp, rank: ranks[i] })),
+      most: top ? { name: top.scenarioName, plays: +top.counts.plays } : null
+    };
+  }
+
+  function renderKovaaks(k) {
+    if (k.volt) {
+      $('#kv-volt-rank').textContent = k.volt.rank.toLowerCase();
+      $('#kv-volt-sub').textContent = `voltaic s${k.volt.season} · ${k.volt.tier.toLowerCase()}`;
+      $('#kv-volt').hidden = false;
+    }
+    $('#kv-runs').textContent = k.runs.toLocaleString('en-US');
+    $('#kv-scen').textContent = k.scenarios.toLocaleString('en-US');
+    $('#kv-last').textContent = k.lastAccess ? ago(k.lastAccess) : '—';
+    $('#kv-stats').hidden = false;
+
+    if (k.pbs.length) {
+      $('#kv-pbs').replaceChildren(...k.pbs.map(p => {
+        const li = el('li');
+        const meta = el('span', 'kv-meta');
+        meta.append(el('b', null, fmtScore(p.score)));
+        if (p.rank) meta.append(' · ', el('span', p.rank <= 100 ? 'kv-hot' : null, `#${p.rank.toLocaleString('en-US')} global`));
+        meta.append(` · ${ago(p.when)}`);
+        li.append(el('span', 'kv-name', p.name), meta);
+        return li;
+      }));
+      $('#kv-pbs').hidden = false;
+      $('#kv-msg').hidden = true;
+    } else {
+      $('#kv-msg').textContent = 'no recent pbs';
+    }
+
+    if (k.most) {
+      $('#kv-most').textContent = `most played: ${k.most.name} · ${k.most.plays.toLocaleString('en-US')} runs`;
+      $('#kv-most').hidden = false;
+    }
+  }
+
+  async function loadKovaaks() {
+    // reuse the last result for 10 minutes so flipping between pages doesn't re-ask kovaak's
+    try {
+      const c = JSON.parse(sessionStorage.getItem(KV_CACHE) || 'null');
+      if (c && Date.now() - c.at < 10 * 60 * 1000) { renderKovaaks(c.data); return; }
+    } catch (e) {}
+    try {
+      const data = await fetchKovaaks();
+      renderKovaaks(data);
+      try { sessionStorage.setItem(KV_CACHE, JSON.stringify({ at: Date.now(), data })); } catch (e) {}
+    } catch (e) {
+      $('#kv-msg').textContent = "couldn't reach kovaak's rn";
+    }
+  }
+  loadKovaaks();
+
+  /* ================= twitch: show "live" only while streaming ================= */
+  // decapi returns plain text: the uptime when live, "akiaims is offline" when not
+  async function checkLive() {
+    try {
+      const text = (await (await fetch('https://decapi.me/twitch/uptime/akiaims')).text()).trim();
+      const live = !!text && !/offline|error|not found|no user|invalid/i.test(text);
+      $('#r-live').hidden = !live;
+      if (live) $('#t-live').textContent = '· ' + text.replace(/,?\s*\d+ seconds?/, '');
+    } catch (e) {}
+  }
+  checkLive();
+  setInterval(checkLive, 120000);
+
+  /* ================= easter egg: double-click my name ================= */
+  $('.name').addEventListener('dblclick', () => {
+    const sel = getSelection();
+    if (sel) sel.removeAllRanges();   // a double-click would otherwise highlight the word
+    if ($('.cat-win')) return;
+    const win = document.createElement('section');
+    win.className = 'win shown cat-win';
+    win.setAttribute('role', 'dialog');
+    win.setAttribute('aria-label', 'cat.exe');
+    const bar = document.createElement('header');
+    bar.className = 'bar';
+    const title = document.createElement('span');
+    title.textContent = 'cat.exe';
+    const close = document.createElement('button');
+    close.className = 'min'; close.type = 'button'; close.textContent = '×';
+    close.setAttribute('aria-label', 'close cat');
+    close.addEventListener('click', () => win.remove());
+    bar.append(title, close);
+    const body = document.createElement('div');
+    body.className = 'body';
+    const img = new Image();
+    img.src = 'setup-8.webp'; img.alt = 'a cat sitting on the mousepad';
+    const cap = document.createElement('p');
+    cap.className = 'cap'; cap.textContent = 'meow.';
+    body.append(img, cap);
+    win.append(bar, body);
+    document.body.append(win);
+    close.focus();
+  });
+})();
+</script>
 </body>
 </html>

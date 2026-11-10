@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>aki — 404</title>
+<meta name="robots" content="noindex">
+<link rel="icon" id="favicon" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Jersey+10&display=swap" rel="stylesheet">
+<script>
+  // same saved theme + tint as the other pages (no boot intro here)
+  try {
+    const t = localStorage.getItem('aki-theme'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
+    const c = localStorage.getItem('aki-tint');
+    if (c === 'mono') document.documentElement.classList.add('mono');
+    else if (c && !isNaN(c)) document.documentElement.style.setProperty('--h', c);
+  } catch (e) {}
+</script>
+<!-- root-relative paths: github pages serves this for missing urls at any depth -->
+<link rel="stylesheet" href="/retro.css">
+<style>
+  #lost { width: min(480px, 100%); align-self: center; }
+  .err { margin: 0 0 6px; }
+  .err b { font-family: var(--display); font-weight: 400; font-size: 22px; letter-spacing: .04em; }
+  .path { margin: 0; font-size: 14px; color: var(--mute); word-break: break-all; }
+</style>
+</head>
+<body>
+<canvas id="sky" aria-hidden="true"></canvas>
+
+<a class="corner-btn back-btn" href="/">← aki</a>
+<button class="corner-btn theme-btn" id="themeBtn" type="button" aria-label="switch to light mode"></button>
+
+<header class="hero short" id="top">
+  <p class="hero-kicker">/aki/404</p>
+  <h1 class="hero-title">404</h1>
+  <p class="hero-tag">file not found</p>
+  <a class="scroll-hint" href="#lost" aria-label="scroll down">⌄</a>
+</header>
+
+<main class="stage">
+  <section class="win" id="lost" aria-labelledby="lost-t">
+    <header class="bar"><span id="lost-t">Error</span><button class="min" type="button" aria-label="collapse error" aria-expanded="true">–</button></header>
+    <div class="body">
+      <p class="err"><b>this page wandered off.</b></p>
+      <p class="err">the link might be old, or something got renamed.</p>
+      <p class="path" id="path"></p>
+      <div class="btns">
+        <a class="btn" href="/">← back to aki</a>
+        <a class="btn" href="/setup.html">setup &amp; peripherals</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script src="/retro.js"></script>
+<script>
+  document.getElementById('path').textContent = 'looked for: ' + location.pathname;
+</script>
+</body>
+</html>
