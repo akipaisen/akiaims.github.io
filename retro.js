@@ -4,7 +4,10 @@
 window.retro = (() => {
   const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
   const root = document.documentElement;
-  const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // motion is off when the device asks for reduced motion, or the visitor pressed "effects off" (html.calm)
+  const RMQ = matchMedia('(prefers-reduced-motion: reduce)');
+  let RM = RMQ.matches || root.classList.contains('calm');
+  const motionHooks = [];   // re-run when effects get switched on/off while the page is open
   // the <head> script may already have restored a saved tint (hue or mono)
   let HUE = parseFloat(getComputedStyle(root).getPropertyValue('--h')) || 198;
   let MONO = root.classList.contains('mono');
@@ -201,11 +204,17 @@ window.retro = (() => {
     pending = true;
     requestAnimationFrame(n => { pending = false; draw(n); });
   }
-  function loop(now) { draw(now); requestAnimationFrame(loop); }
+  let looping = false;
+  function loop(now) {
+    draw(now);
+    if (RM) { looping = false; return; }   // effects switched off: stop after this frame
+    requestAnimationFrame(loop);
+  }
+  function startLoop() { if (!RM && !looping) { looping = true; requestAnimationFrame(loop); } }
 
   addEventListener('resize', resize);
   resize();
-  if (!RM) requestAnimationFrame(loop);
+  startLoop();
 
   /* ================= theme toggle ================= */
   const MOON = '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M10 1a7 7 0 1 0 5 11.5A6 6 0 0 1 10 1z"/></svg>';
@@ -226,6 +235,43 @@ window.retro = (() => {
                         !e.target.closest('a, button, input, dialog, .win');
   document.addEventListener('click', e => { if (overMoon(e)) themeBtn.click(); });
   document.addEventListener('pointermove', e => { document.body.style.cursor = overMoon(e) ? 'pointer' : ''; }, { passive: true });
+
+  /* ================= effects on/off (the ✦ button) ================= */
+  // off = the same calm page reduced-motion visitors get: no animation, no grain/glitch, still sky
+  const FX_ON = '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="currentColor"><rect x="7" y="1" width="2" height="5"/><rect x="7" y="10" width="2" height="5"/><rect x="1" y="7" width="5" height="2"/><rect x="10" y="7" width="5" height="2"/><rect x="6" y="6" width="4" height="4"/></svg>';
+  const FX_OFF = '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="currentColor"><g opacity=".45"><rect x="7" y="1" width="2" height="5"/><rect x="7" y="10" width="2" height="5"/><rect x="1" y="7" width="5" height="2"/><rect x="10" y="7" width="5" height="2"/><rect x="6" y="6" width="4" height="4"/></g><rect x="1" y="14" width="2" height="2"/><rect x="3" y="12" width="2" height="2"/><rect x="5" y="10" width="2" height="2"/><rect x="7" y="8" width="2" height="2"/><rect x="9" y="6" width="2" height="2"/><rect x="11" y="4" width="2" height="2"/><rect x="13" y="2" width="2" height="2"/></svg>';
+  let fxBtn = null;
+  function setCalm(off, save) {
+    root.classList.toggle('calm', off);
+    RM = RMQ.matches || off;
+    if (save) { try { off ? localStorage.setItem('aki-fx', 'off') : localStorage.removeItem('aki-fx'); } catch (e) {} }
+    if (fxBtn) {
+      const label = off ? 'turn effects back on' : 'turn effects off';
+      fxBtn.innerHTML = off ? FX_OFF : FX_ON;
+      fxBtn.setAttribute('aria-pressed', String(off));
+      fxBtn.setAttribute('aria-label', label);
+      fxBtn.title = label;
+    }
+    if (RM) {
+      // anything still waiting to fade in just appears
+      root.classList.remove('reveal');
+      $$('.win').forEach(w => w.classList.add('shown'));
+      requestDraw();
+    } else {
+      startLoop();
+    }
+    motionHooks.forEach(f => f());
+  }
+  // a device already set to reduced motion keeps effects off, so the button isn't offered there
+  if (!RMQ.matches) {
+    fxBtn = document.createElement('button');
+    fxBtn.type = 'button';
+    fxBtn.className = 'corner-btn fx-btn';
+    themeBtn.before(fxBtn);
+    fxBtn.addEventListener('click', () => setCalm(!root.classList.contains('calm'), true));
+  }
+  setCalm(root.classList.contains('calm'), false);
+  if (RMQ.addEventListener) RMQ.addEventListener('change', () => setCalm(root.classList.contains('calm'), false));
 
   /* ================= windows: drag by title bar (desktop), collapse ================= */
   const canDrag = matchMedia('(pointer: fine) and (min-width: 761px)');
@@ -337,18 +383,47 @@ window.retro = (() => {
           if (avg < 30 || avg > 230) continue;
           r += d[i]; g += d[i + 1]; b += d[i + 2]; n++;
         }
+        favImg = img;
+        drawFavicon();
         if (!n) { setMono(); return; }
         const [h, s] = rgbToHs(r / n, g / n, b / n);
         if (s >= 18) setHue(h); else setMono();
       } catch (e) {}
     };
-    img.src = `https://images.weserv.nl/?url=${encodeURIComponent(url)}&w=48&h=48&fit=cover&output=png`;
+    // via a proxy that allows canvas access (discord's cdn image would taint the canvas)
+    img.src = `https://images.weserv.nl/?url=${encodeURIComponent(url)}&w=64&h=64&fit=cover&output=png`;
+  }
+
+  // tab icon: the avatar with a little square in the current discord status colour
+  let favImg = null, favStatus = null;
+  const STATUS_COLOUR = { online: '#3ba55c', idle: '#faa61a', dnd: '#ed4245', offline: '#80848e' };
+  function drawFavicon() {
+    if (!favImg) return;
+    try {
+      const c = document.createElement('canvas');
+      c.width = c.height = 64;
+      const x = c.getContext('2d');
+      x.drawImage(favImg, 0, 0, 64, 64);
+      if (STATUS_COLOUR[favStatus]) {
+        x.fillStyle = '#0b0b0b';
+        x.fillRect(36, 36, 28, 28);
+        x.fillStyle = STATUS_COLOUR[favStatus];
+        x.fillRect(41, 41, 18, 18);
+      }
+      $('#favicon').href = c.toDataURL('image/png');
+    } catch (e) {}
+  }
+  function setStatus(status) {
+    if (status === favStatus) return;
+    favStatus = status;
+    drawFavicon();
   }
 
   let tinted = false;
   function applyAvatar(url) {
     const fav = $('#favicon');
-    if (fav && fav.getAttribute('href') !== url) fav.href = url;
+    // show the plain avatar straight away; the version with the status dot replaces it once drawn
+    if (fav && !favImg && fav.getAttribute('href') !== url) fav.href = url;
     if (!tinted) { tinted = true; hueFromAvatar(url); }
   }
 
@@ -386,6 +461,7 @@ window.retro = (() => {
       clearInterval(timer);
       if (!RM) timer = setInterval(() => go(idx + 1), 5000);
     }
+    motionHooks.push(restart);
     $('#prev').addEventListener('click', () => go(idx - 1));
     $('#next').addEventListener('click', () => go(idx + 1));
     go(0);
@@ -498,8 +574,8 @@ window.retro = (() => {
     document.body.append(vig, grain);
   })();
 
+  // windows rise in as they scroll into view, a beat apart when several arrive together
   if (!RM) {
-    // windows rise in as they scroll into view, a beat apart when several arrive together
     if ('IntersectionObserver' in window) {
       root.classList.add('reveal');
       const io = new IntersectionObserver(entries => {
@@ -511,11 +587,13 @@ window.retro = (() => {
       }, { rootMargin: '0px 0px -6% 0px', threshold: .06 });
       $$('.win').forEach(w => io.observe(w));
     }
+  }
 
-    // fade the page out before going to the other page (same-site links only)
+  // fade the page out before going to the other page (same-site links only; skipped when effects are off)
+  {
     document.addEventListener('click', e => {
       const a = e.target.closest('a[href]');
-      if (!a || a.target === '_blank' || e.defaultPrevented || e.button !== 0 ||
+      if (RM || !a || a.target === '_blank' || e.defaultPrevented || e.button !== 0 ||
           e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
       const url = new URL(a.href, location.href);
       if (url.origin !== location.origin || url.pathname === location.pathname) return;
@@ -527,5 +605,5 @@ window.retro = (() => {
     addEventListener('pageshow', e => { if (e.persisted) root.classList.remove('leaving'); });
   }
 
-  return { RM, setHue, setMono, applyAvatar };
+  return { get RM() { return RM; }, setHue, setMono, applyAvatar, setStatus };
 })();

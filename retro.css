@@ -106,6 +106,7 @@ body {
 }
 .corner-btn:active { translate: 2px 2px; box-shadow: 1px 1px 0 var(--shadow); }
 .theme-btn { right: 14px; padding: 0; }
+.fx-btn { right: 60px; padding: 0; }
 .back-btn { left: 14px; }
 
 /* ---------- hero ---------- */
@@ -418,3 +419,13 @@ html.leaving .hero, html.leaving .stage, html.leaving .end { opacity: 0; }
   .frame img { transition: none; }
   .hero > :not(.scroll-hint), .hero-title::before, .hero-title::after, .fx-grain { animation: none; }
 }
+
+/* "effects off" button: same calm page, and the grain + vignette go too */
+html.calm { scroll-behavior: auto; }
+html.calm .scroll-hint,
+html.calm .hero > :not(.scroll-hint),
+html.calm .hero-title::before,
+html.calm .hero-title::after { animation: none; }
+html.calm .frame img,
+html.calm .hero, html.calm .stage, html.calm .end { transition: none; }
+html.calm .fx-grain, html.calm .fx-vig { display: none; }

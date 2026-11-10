@@ -29,7 +29,10 @@
     if (c === 'mono') document.documentElement.classList.add('mono');
     else if (c && !isNaN(c)) document.documentElement.style.setProperty('--h', c);
     // first visit this session: hold the page for the boot intro (retro.js plays it); failsafe after 4s
-    if (!sessionStorage.getItem('aki-booted') && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    // effects switched off with the ✦ button (remembered) — calm page, no boot intro
+    const fx = localStorage.getItem('aki-fx');
+    if (fx === 'off') document.documentElement.classList.add('calm');
+    if (fx !== 'off' && !sessionStorage.getItem('aki-booted') && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
       document.documentElement.classList.add('booting');
       setTimeout(() => document.documentElement.classList.remove('booting'), 4000);
     }
@@ -513,6 +516,7 @@
     .then(j => {
       const av = j.success && j.data.discord_user && j.data.discord_user.avatar;
       if (av) retro.applyAvatar(`https://cdn.discordapp.com/avatars/${DISCORD_ID}/${av}.${av.startsWith('a_') ? 'gif' : 'png'}?size=128`);
+      if (j.success) retro.setStatus(j.data.discord_status || 'offline');
     })
     .catch(() => {});
 })();

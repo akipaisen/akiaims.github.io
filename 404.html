@@ -16,6 +16,7 @@
     const c = localStorage.getItem('aki-tint');
     if (c === 'mono') document.documentElement.classList.add('mono');
     else if (c && !isNaN(c)) document.documentElement.style.setProperty('--h', c);
+    if (localStorage.getItem('aki-fx') === 'off') document.documentElement.classList.add('calm');
   } catch (e) {}
 </script>
 <!-- root-relative paths: github pages serves this for missing urls at any depth -->

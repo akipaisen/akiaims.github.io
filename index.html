@@ -29,7 +29,10 @@
     if (c === 'mono') document.documentElement.classList.add('mono');
     else if (c && !isNaN(c)) document.documentElement.style.setProperty('--h', c);
     // first visit this session: hold the page for the boot intro (retro.js plays it); failsafe after 4s
-    if (!sessionStorage.getItem('aki-booted') && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    // effects switched off with the ✦ button (remembered) — calm page, no boot intro
+    const fx = localStorage.getItem('aki-fx');
+    if (fx === 'off') document.documentElement.classList.add('calm');
+    if (fx !== 'off' && !sessionStorage.getItem('aki-booted') && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
       document.documentElement.classList.add('booting');
       setTimeout(() => document.documentElement.classList.remove('booting'), 4000);
     }
@@ -188,6 +191,16 @@
   .ta-bar i { display: block; height: 100%; background: var(--line); }
   .ta-plays { min-width: 4.8em; text-align: right; white-space: nowrap; font-size: 13px; color: var(--mute); }
   .ta-msg { margin: 0; color: var(--mute); }
+
+  /* album of the week, featured above the artist list */
+  .aotw { margin-bottom: 12px; padding-bottom: 12px; border-bottom: 2px solid var(--line); }
+  .aotw-head { margin: 0 0 6px; font-family: var(--display); font-size: 17px; letter-spacing: .08em; text-transform: uppercase; color: var(--mute); }
+  .aotw a { display: grid; grid-template-columns: 72px 1fr; gap: 12px; align-items: center; padding: 3px; text-decoration: none; }
+  .aotw a:hover { background: var(--bar); }
+  .aotw img { width: 72px; height: 72px; object-fit: cover; border: 2px solid var(--line); background: var(--pale); }
+  .aotw-text { display: grid; min-width: 0; }
+  .aotw-name { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 17px; }
+  .aotw-meta { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 13px; color: var(--mute); }
   .ta-foot { margin: 12px 0 0; text-align: right; font-size: 14px; }
 
   /* ---------- kovaak's ---------- */
@@ -247,6 +260,8 @@
     .np-bar i { transition: none; }
     .live-dot, .cat-win { animation: none; }
   }
+  html.calm .eq i, html.calm .live-dot, html.calm .cat-win { animation: none; }
+  html.calm .np-bar i { transition: none; }
 </style>
 </head>
 <body>
@@ -333,6 +348,13 @@
   <section class="win" id="topartists" aria-labelledby="ta-t">
     <header class="bar"><span id="ta-t">Top Artists · 7 days</span><button class="min" type="button" aria-label="collapse top artists" aria-expanded="true">–</button></header>
     <div class="body">
+      <div class="aotw" id="aotw" hidden>
+        <p class="aotw-head">album of the week</p>
+        <a id="aotw-link" target="_blank" rel="noopener">
+          <img id="aotw-art" width="72" height="72" alt="">
+          <span class="aotw-text"><span class="aotw-name" id="aotw-name"></span><span class="aotw-meta" id="aotw-meta"></span></span>
+        </a>
+      </div>
       <ol class="ta" id="ta-list" hidden></ol>
       <p class="ta-msg" id="ta-msg">loading…</p>
       <p class="ta-foot"><a href="https://www.last.fm/user/ecchisin" target="_blank" rel="noopener">full stats on last.fm&nbsp;↗</a></p>
@@ -446,6 +468,7 @@
       const st = d.discord_status || 'offline';
       $$('.sdot').forEach(el => { el.className = 'sdot ' + st; });
       $('#t-status').textContent = STATUS_TEXT[st] || st;
+      retro.setStatus(st);
 
       const acts = d.activities || [];
 
@@ -614,6 +637,20 @@
       list.replaceChildren(...artists.map((a, i) => artistRow(a, i + 1, maxPlays, covers[a.name.toLowerCase()])));
       list.hidden = false;
       msg.hidden = true;
+
+      // album of the week = her most-played album in the same 7 days
+      const aotw = ((albums.topalbums && albums.topalbums.album) || [])[0];
+      if (aotw) {
+        const link = $('#aotw-link');
+        link.href = /^https:\/\/www\.last\.fm\//.test(aotw.url) ? aotw.url : `https://www.last.fm/user/${LASTFM_USER}`;
+        const cover = coverOf(aotw.image);
+        const art = $('#aotw-art');
+        if (cover) { art.src = cover; art.hidden = false; } else { art.hidden = true; }
+        $('#aotw-name').textContent = aotw.name;
+        const plays = +aotw.playcount;
+        $('#aotw-meta').textContent = `${aotw.artist.name} · ${plays} ${plays === 1 ? 'play' : 'plays'}`;
+        $('#aotw').hidden = false;
+      }
     } catch (e) {
       msg.textContent = "couldn't reach last.fm rn";
     }
@@ -622,8 +659,9 @@
   loadTopArtists();
 
   /* ================= kovaak's (public webapp api — it allows requests from this site) ================= */
-  const KV = 'https://kovaaks.com/webapp-backend', KV_USER = 'akiaims', KV_CACHE = 'aki-kovaaks-v2';
-  const TIERS = ['Novice', 'Intermediate', 'Advanced'];
+  const KV = 'https://kovaaks.com/webapp-backend', KV_USER = 'akiaims', KV_CACHE = 'aki-kovaaks-v3';
+  // the benchmark shown in the badge — swap the id + label to feature a different one
+  const BENCH_ID = 2336, BENCH_LABEL = 'viscose s2 · medium';
   const kvGet = path => fetch(KV + path).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); });
   const fmtScore = n => (+n).toLocaleString('en-US', { maximumFractionDigits: 1 });
   function ago(iso) {
@@ -658,26 +696,20 @@
         .then(j => ((j.data || []).find(d => d.steamId === prof.steamId) || {}).rank || null)
         .catch(() => null)));
 
-    // voltaic rank: official benchmarks (by Tammas), newest season she's ranked in, highest tier with a rank
-    let volt = null;
+    // benchmark badge: her rank on Viscose Benchmark S2 Medium (by fae fawn, benchmark id 2336)
+    let bench = null;
     try {
       const BM = `/benchmarks/player-progress-rank?username=${KV_USER}&max=300&page=`;
       const b0 = await kvGet(BM + 0);
       const more = await Promise.all(Array.from({ length: Math.max(0, Math.ceil((b0.total || 0) / 300) - 1) },
         (_, i) => kvGet(BM + (i + 1)).catch(() => ({ data: [] }))));
-      const ranked = [b0, ...more].flatMap(p => p.data || []).map(b => {
-        const m = b.benchmarkAuthor === 'Tammas' && /^Voltaic S(\d+) - (Novice|Intermediate|Advanced)$/i.exec(b.benchmarkName || '');
-        return m && b.rankName && !/no rank/i.test(b.rankName)
-          ? { season: +m[1], tier: m[2][0].toUpperCase() + m[2].slice(1).toLowerCase(), rank: b.rankName, icon: b.rankIcon }
-          : null;
-      }).filter(Boolean);
-      ranked.sort((a, b) => b.season - a.season || TIERS.indexOf(b.tier) - TIERS.indexOf(a.tier));
-      volt = ranked[0] || null;
+      const b = [b0, ...more].flatMap(p => p.data || []).find(x => x.benchmarkId === BENCH_ID);
+      if (b && b.rankName && !/no rank/i.test(b.rankName)) bench = { rank: b.rankName, label: BENCH_LABEL };
     } catch (e) {}
 
     const top = (first.data || [])[0];
     return {
-      volt,
+      bench,
       runs, scenarios: first.total || 0, lastAccess: prof.lastAccess || null,
       pbs: pbs.map((p, i) => ({ name: p.scenarioName, score: p.score, when: p.timestamp, rank: ranks[i] })),
       most: top ? { name: top.scenarioName, plays: +top.counts.plays } : null
@@ -685,9 +717,9 @@
   }
 
   function renderKovaaks(k) {
-    if (k.volt) {
-      $('#kv-volt-rank').textContent = k.volt.rank.toLowerCase();
-      $('#kv-volt-sub').textContent = `voltaic s${k.volt.season} · ${k.volt.tier.toLowerCase()}`;
+    if (k.bench) {
+      $('#kv-volt-rank').textContent = k.bench.rank.toLowerCase();
+      $('#kv-volt-sub').textContent = k.bench.label;
       $('#kv-volt').hidden = false;
     }
     $('#kv-runs').textContent = k.runs.toLocaleString('en-US');
