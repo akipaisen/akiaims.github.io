@@ -12,10 +12,10 @@
 <meta property="og:title" content="aki — setup &amp; peripherals">
 <meta property="og:description" content="the neverending pile of useless stuff — every mouse, pad, keyboard and IEM, with prices.">
 <meta property="og:url" content="https://akiaims.xyz/setup.html">
-<meta property="og:image" content="https://akiaims.xyz/setup-desk.jpg">
-<meta property="og:image:width" content="1080">
-<meta property="og:image:height" content="810">
-<meta property="og:image:alt" content="aki's desk setup">
+<meta property="og:image" content="https://akiaims.xyz/og-card.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="aki — c'est la vie">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" id="favicon" href="favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -44,6 +44,20 @@
   #photos { width: min(640px, 100%); align-self: center; }
   #readme, #skates { width: min(460px, 100%); }
   #total { width: min(460px, 100%); align-self: center; }
+
+  /* widescreen: photos + readme on top, every gear window flowing into three balanced columns
+     (the script at the bottom moves the windows in; narrower screens keep the layout above) */
+  .wl { display: none; }
+  @media (min-width: 1360px) {
+    .stage.is-wide { max-width: min(1560px, 94vw); }
+    .stage.is-wide .wl { display: grid; gap: 36px; }
+    .wl-top { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, .75fr); gap: 36px; align-items: start; }
+    .wl-side { display: flex; flex-direction: column; gap: 36px; min-width: 0; }
+    .wl-cols { columns: 3; column-gap: 36px; }
+    .wl-cols > .win { display: block; margin-bottom: 36px; break-inside: avoid; }
+    .stage.is-wide .wl .win,
+    .stage.is-wide :is(#photos, #readme, #skates, #total) { width: 100%; margin-left: 0; margin-right: 0; }
+  }
 
   .bar-r { display: flex; align-items: center; gap: 8px; }
   .cap.stamp { margin-top: 6px; text-align: right; font-size: 13px; }
@@ -386,6 +400,35 @@
 <script>
 (() => {
   const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+
+  // widescreen layout: photos + readme on top, gear windows in three balanced columns
+  const WIDE = matchMedia('(min-width: 1360px)');
+  const stage = $('.stage');
+  const wins = [...stage.querySelectorAll(':scope > .win')];   // original page order
+  const wl = document.createElement('div');
+  wl.className = 'wl';
+  const wlTop = document.createElement('div');
+  wlTop.className = 'wl-top';
+  const wlSide = document.createElement('div');   // readme + monitors (short) beside the tall photos window
+  wlSide.className = 'wl-side';
+  const wlCols = document.createElement('div');
+  wlCols.className = 'wl-cols';
+  wl.append(wlTop, wlCols);
+  stage.prepend(wl);
+  const TOP = ['photos', 'readme', 'monitors'];
+  function arrange() {
+    if (WIDE.matches) {
+      wlSide.append($('#readme'), $('#monitors'));
+      wlTop.append($('#photos'), wlSide);
+      wlCols.append(...wins.filter(w => !TOP.includes(w.id)));
+      stage.classList.add('is-wide');
+    } else {
+      stage.append(...wins);   // back to the single staggered column, same order
+      stage.classList.remove('is-wide');
+    }
+  }
+  arrange();
+  WIDE.addEventListener('change', arrange);
 
   // item counts in each title bar + the readme index
   $$('.win[data-gear]').forEach(win => {

@@ -112,14 +112,13 @@ body {
 .hero {
   position: relative;
   z-index: 1;
-  min-height: 100vh;
-  min-height: 100svh;
+  min-height: clamp(300px, 44vh, 480px);
   display: flex;
   flex-direction: column;
   justify-content: center;
   padding: 0 max(16px, 8vw);
 }
-.hero.short { min-height: 72vh; min-height: 72svh; }
+.hero.short { min-height: clamp(280px, 40vh, 440px); }
 
 .hero-kicker {
   margin: 0 0 6px;
@@ -164,7 +163,7 @@ body {
   z-index: 1;
   max-width: 1000px;
   margin: 0 auto;
-  padding: 6vh 16px 14vh;
+  padding: 2vh 16px 14vh;
   display: flex;
   flex-direction: column;
   gap: 52px;

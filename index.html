@@ -12,10 +12,10 @@
 <meta property="og:title" content="aki">
 <meta property="og:description" content="c'est la vie — aim training, fps games, vrchat and way too many peripherals.">
 <meta property="og:url" content="https://akiaims.xyz/">
-<meta property="og:image" content="https://akiaims.xyz/setup-desk.jpg">
-<meta property="og:image:width" content="1080">
-<meta property="og:image:height" content="810">
-<meta property="og:image:alt" content="aki's desk setup">
+<meta property="og:image" content="https://akiaims.xyz/og-card.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="aki — c'est la vie">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" id="favicon" href="favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -57,6 +57,19 @@
   @media (max-width: 960px) {
     .pair { grid-template-columns: 1fr; }
     .pair > #links { margin-top: 0; }
+  }
+
+  /* widescreen: three columns + a video/setup row (the script at the bottom moves the windows in) */
+  .wl { display: none; }
+  @media (min-width: 1360px) {
+    .stage.is-wide { max-width: min(1560px, 94vw); }
+    .stage.is-wide .cols, .stage.is-wide .pair { display: none; }
+    .stage.is-wide .wl { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 36px; align-items: start; }
+    .wl-col { display: flex; flex-direction: column; gap: 36px; min-width: 0; }
+    .wl-col:nth-child(2) { margin-top: 28px; }
+    /* video gets more width so a 16:9 player and the 3:2 photo window end up about the same height */
+    .wl-row { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, .8fr); gap: 36px; align-items: start; }
+    .stage.is-wide .wl .win, .stage.is-wide #topartists { width: 100%; margin: 0; }
   }
 
   /* ---------- about ---------- */
@@ -719,6 +732,31 @@
     }
   }
   loadKovaaks();
+
+  /* ================= widescreen layout: three columns + a video/setup row ================= */
+  const WIDE = matchMedia('(min-width: 1360px)');
+  const stage = $('.stage');
+  const home = [...stage.querySelectorAll('.win')].map(w => ({ w, parent: w.parentElement }));
+  const PLAN = [['about', 'status', 'np'], ['kovaaks'], ['topartists', 'links']];
+  const ROW = ['video', 'setup'];
+  const wl = el('div', 'wl');
+  const wlCols = PLAN.map(() => el('div', 'wl-col'));
+  const wlRow = el('div', 'wl-row');
+  wl.append(...wlCols, wlRow);
+  stage.prepend(wl);
+  function arrange() {
+    if (WIDE.matches) {
+      PLAN.forEach((ids, i) => wlCols[i].append(...ids.map(id => document.getElementById(id))));
+      wlRow.append(...ROW.map(id => document.getElementById(id)));
+      stage.classList.add('is-wide');
+    } else {
+      // every window goes back where the page has it, in its original order
+      home.forEach(({ w, parent }) => parent.append(w));
+      stage.classList.remove('is-wide');
+    }
+  }
+  arrange();
+  WIDE.addEventListener('change', arrange);
 
   /* ================= twitch: show "live" only while streaming ================= */
   // decapi returns plain text: the uptime when live, "akiaims is offline" when not
