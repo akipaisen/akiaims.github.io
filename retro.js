@@ -71,7 +71,8 @@ window.retro = (() => {
   }
 
   function draw(now) {
-    const t = now / 1000, dt = Math.min(.05, (now - lastT) / 1000), sc = scrollY;
+    // reduced motion: no scroll parallax either — the sky stays put like a fixed wallpaper
+    const t = now / 1000, dt = Math.min(.05, (now - lastT) / 1000), sc = RM ? 0 : scrollY;
     const light = root.dataset.theme === 'light';
     lastT = now;
 
@@ -203,7 +204,6 @@ window.retro = (() => {
   function loop(now) { draw(now); requestAnimationFrame(loop); }
 
   addEventListener('resize', resize);
-  addEventListener('scroll', requestDraw, { passive: true });
   resize();
   if (!RM) requestAnimationFrame(loop);
 
